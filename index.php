@@ -249,7 +249,7 @@ $filebrowser = new FileBrowser($_REQUEST, [
     'root' => realpath(realpath(dirname(__FILE__).DIRECTORY_SEPARATOR.'..').DIRECTORY_SEPARATOR.'images'.DIRECTORY_SEPARATOR). DIRECTORY_SEPARATOR,
     'baseurl' => 'images/',
     'extensions' => ['jpg', 'png', 'gif', 'jpeg'],
-    'debug' => true,
+    'debug' => false,
 ]);
 
 $filebrowser->checkPermissions();
