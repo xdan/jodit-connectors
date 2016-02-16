@@ -14,10 +14,10 @@ function checkPermissions () {
 }
 ```
 and adjust options 
-* $config['root'] - the root directory for user files
-* $config['baseurl'] - Root URL for user files (exp. `http://xdsoft.net`)
-* $config['extensions'] - an array of valid file extensions that are permitted to be loaded (`['jpg', 'png', 'gif', 'jpeg']`)
-* $config['debug'] - Show reports of internal script errors (`false`)
+* `$config['root']` - the root directory for user files
+* `$config['baseurl']` - Root URL for user files (exp. `http://xdsoft.net`)
+* `$config['extensions']` - an array of valid file extensions that are permitted to be loaded (`['jpg', 'png', 'gif', 'jpeg']`)
+* `$config['debug']` - Show reports of internal script errors (`false`)
 
 ## How use
 Filebrowser settings  [Detailt options](http://xdsoft.net/jodit/doc/Jodit.defaultOptions.html#toc13__anchor)
