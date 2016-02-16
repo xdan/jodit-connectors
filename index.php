@@ -252,6 +252,6 @@ $filebrowser = new FileBrowser($_REQUEST, [
     'debug' => true,
 ]);
 
-//$filebrowser->checkPermissions();
+$filebrowser->checkPermissions();
 
 $filebrowser->execute();
