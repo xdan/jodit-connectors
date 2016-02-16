@@ -245,12 +245,14 @@ class FileBrowser {
     }
 }
 
-$filebrowser = new FileBrowser($_REQUEST, [
+$config = [
     'root' => realpath(realpath(dirname(__FILE__).DIRECTORY_SEPARATOR.'..').DIRECTORY_SEPARATOR.'images'.DIRECTORY_SEPARATOR). DIRECTORY_SEPARATOR,
     'baseurl' => 'images/',
     'extensions' => ['jpg', 'png', 'gif', 'jpeg'],
     'debug' => false,
-]);
+];
+
+$filebrowser = new FileBrowser($_REQUEST, $config);
 
 $filebrowser->checkPermissions();
 
