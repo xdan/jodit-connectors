@@ -43,7 +43,7 @@ and uploader options [Detailt options](http://xdsoft.net/jodit/doc/Jodit.default
 ```javascript
 jQuery('#editor').jodit({
     uploader: {
-        url: 'connector/index.php',
+        url: 'connector/index.php?action=upload',
     }
 });
 ```

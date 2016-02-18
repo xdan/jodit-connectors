@@ -73,6 +73,7 @@ class FileBrowser {
         session_start();
         ob_start();
         header('Content-Type: application/json');
+
         set_error_handler(array($this, 'errorHandler'), E_ALL);
 
         $this->request = (object)$request;
@@ -80,6 +81,11 @@ class FileBrowser {
         $this->result  = (object)array('error'=> 1, 'msg' => array(), 'files'=> array());
         $this->action  = isset($this->request->action) ?  $this->request->action : 'items';
         $this->root  = isset($this->config->root) ?  $this->config->root : dirname(__FILE__);
+        
+        if ($this->config->debug) {
+            error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
+            ini_set('display_errors', 0);
+        }
 
     }
     
@@ -246,14 +252,14 @@ class FileBrowser {
 }
 
 $config = [
-    'root' => realpath(realpath(dirname(__FILE__).DIRECTORY_SEPARATOR.'..').DIRECTORY_SEPARATOR.'images'.DIRECTORY_SEPARATOR). DIRECTORY_SEPARATOR,
-    'baseurl' => 'images/',
+    'root' => realpath(realpath(dirname(__FILE__).DIRECTORY_SEPARATOR.'..').DIRECTORY_SEPARATOR.'files'.DIRECTORY_SEPARATOR). DIRECTORY_SEPARATOR,
+    'baseurl' => 'files/',
     'extensions' => ['jpg', 'png', 'gif', 'jpeg'],
     'debug' => false,
 ];
 
 $filebrowser = new FileBrowser($_REQUEST, $config);
 
-$filebrowser->checkPermissions();
+//$filebrowser->checkPermissions();
 
 $filebrowser->execute();
