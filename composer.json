@@ -1,6 +1,7 @@
 {
     "name": "jodit/connector",
     "description": "Jodit FileBrowser and Uploader connector",
+    "version": "1.0.1",
     "license": "MIT",
     "authors": [
         {
