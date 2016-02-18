@@ -1,5 +1,9 @@
 # Jodit FileBrowser Connector
 Official [Jodit WYSIWYG](http://xdsoft.net/jodit) connector
+## Install
+```
+composer require jodit/connector
+```
 ## Options
 Open `index.php`
 Rewrite the function check permissions. By default it has view
