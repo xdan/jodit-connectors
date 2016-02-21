@@ -251,12 +251,12 @@ class FileBrowser {
     }
 }
 
-$config = [
+$config = array(
     'root' => realpath(realpath(dirname(__FILE__).DIRECTORY_SEPARATOR.'..').DIRECTORY_SEPARATOR.'files'.DIRECTORY_SEPARATOR). DIRECTORY_SEPARATOR,
     'baseurl' => 'files/',
     'extensions' => ['jpg', 'png', 'gif', 'jpeg'],
     'debug' => false,
-];
+);
 
 $filebrowser = new FileBrowser($_REQUEST, $config);
 
