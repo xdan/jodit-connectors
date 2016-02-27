@@ -55,8 +55,12 @@ class FileBrowser {
     
     /**
      * Check whether the user has the ability to view files
+     * You can define JoditCheckPermissions function in config.php and use it 
      */
     function checkPermissions () {
+        if (function_exists('JoditCheckPermissions')) {
+            return JoditCheckPermissions($this);
+        }
         /********************************************************************************/
         // rewrite this code for your system
         if (empty($_SESSION['filebrowser'])) {
@@ -258,8 +262,12 @@ $config = array(
     'debug' => false,
 );
 
+if (file_exists("config.php")) {
+    include "config.php";
+}
+
 $filebrowser = new FileBrowser($_REQUEST, $config);
 
-//$filebrowser->checkPermissions();
+$filebrowser->checkPermissions();
 
 $filebrowser->execute();

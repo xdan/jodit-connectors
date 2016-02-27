@@ -1,0 +1,21 @@
+{
+  "name": "jodit-connector",
+  "homepage": "https://github.com/xdan/jodit-connectors",
+  "authors": [
+    "Chupurnov Valeriy <skoder@ya.ru>"
+  ],
+  "description": "",
+  "main": "index.php",
+  "moduleType": [],
+  "keywords": [
+    "jodit"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
