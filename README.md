@@ -9,6 +9,9 @@ Open `index.php`
 Rewrite the function check permissions. By default it has view
 ```php
 function checkPermissions () {
+    if (function_exists('JoditCheckPermissions')) {
+        return JoditCheckPermissions($this);
+    }
     /********************************************************************************/
     // rewrite this code for your system
     if (empty($_SESSION['filebrowser'])) {
@@ -50,4 +53,31 @@ jQuery('#editor').jodit({
         url: 'connector/index.php?action=upload',
     }
 });
+```
+
+### Example Intagrate with Joomla
+
+#### Create `config.php`
+```php
+<?php
+define('_JEXEC', 1);
+define('JPATH_BASE', realpath(realpath(__DIR__).'/../../../../../')); // replace to valid path
+require_once JPATH_BASE . '/includes/defines.php';
+require_once JPATH_BASE . '/includes/framework.php';
+
+$config = array(
+    'root' => JPATH_BASE.'/images/',
+    'baseurl' => '/images/',
+    'extensions' => array('jpg', 'png', 'gif', 'jpeg'),
+    'debug' => true,
+);
+
+$app = JFactory::getApplication('site');
+
+function JoditCheckPermissions() {
+    $user = JFactory::getUser();
+    if (!$user->id) {
+        trigger_error('You are not authorized!', E_USER_WARNING);
+    }
+}
 ```
