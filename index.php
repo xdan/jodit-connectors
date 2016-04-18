@@ -1,4 +1,7 @@
 <?php
+// work with image class
+require_once 'vendor/abeautifulsite/simpleimage/src/abeautifulsite/SimpleImage.php';
+
 class FileBrowser {
     public $result;
     public $root;
@@ -114,28 +117,33 @@ class FileBrowser {
         $this->result->path = str_replace($this->root, '', $this->getPath());
         $this->display();
     }
-    
-    function each($path, $condition) {
+
+    function actionItems() {
         $path = $this->getPath();
         $dir = opendir($path);
         while ($file = readdir($dir)) {
-            if ($file != '.' && $file != '..' && call_user_func($condition, $path.$file)) {
-                $this->result->files[] = $file;
-            }
-        }
-    }
-
-
-    function actionItems() {
-        $this->each($this->getPath(), function ($filepath) {
-            if (is_file($filepath)) {
-                $info = pathinfo($filepath);
+            if ($file != '.' && $file != '..' && is_file($path.$file)) {
+                $info = pathinfo($path.$file);
                 if (!isset($this->config->extensions) or in_array(strtolower($info['extension']), $this->config->extensions)) {
-                    return true;
+                    $item = array(
+                        'file' => $file,
+                    );
+                    if ($this->config->createThumb) {
+                        if (!is_dir($path.$this->config->thumbFolderName)) {
+                            mkdir($path.$this->config->thumbFolderName, 0777);
+                        }
+                        if (!file_exists($path.$this->config->thumbFolderName.'/'.$file)) {
+                            $img = new abeautifulsite\SimpleImage($path.$file);
+                            $img
+                                ->fit_to_height(100)
+                                ->save($path.$this->config->thumbFolderName.'/'.$file, 90);
+                        }
+                        $item['thumb'] = $this->config->thumbFolderName.'/'.$file;
+                    }
+                    $this->result->files[] = $item;
                 }
             }
-            return false;
-        });
+        }
         $this->result->baseurl = $this->config->baseurl;
     }
     function actionFolder() {
@@ -143,12 +151,14 @@ class FileBrowser {
 
         $this->result->files[] = $path == $this->root ? '.' : '..';
 
-        $this->each($path, function ($filepath) {
-            if (is_dir($filepath)) {
-                return true;
+        $dir = opendir($path);
+        while ($file = readdir($dir)) {
+            if ($file != '.' && $file != '..' && is_dir($path.$file) and (!$this->config->createThumb || $file !== $this->config->thumbFolderName)) {
+                $this->result->files[] = $file;
             }
-        });
+        }
     }
+
     function actionUpload() {
         $path = $this->getPath();
         $errors = array(
@@ -258,6 +268,8 @@ class FileBrowser {
 $config = array(
     'root' => realpath(realpath(dirname(__FILE__).DIRECTORY_SEPARATOR.'..').DIRECTORY_SEPARATOR.'files'.DIRECTORY_SEPARATOR). DIRECTORY_SEPARATOR,
     'baseurl' => 'files/',
+    'createThumb' => true,
+    'thumbFolderName' => '_thumbs',
     'extensions' => array('jpg', 'png', 'gif', 'jpeg'),
     'debug' => false,
 );

@@ -23,13 +23,15 @@ function checkPermissions () {
 and adjust options 
 * `$config['root']` - the root directory for user files
 * `$config['baseurl']` - Root URL for user files (exp. `http://xdsoft.net`)
+* `$config['createThumb']` - boolean, true - create thumbnails for previews (`true`)
+* `$config['thumbFolderName']` - thumbnails folder
 * `$config['extensions']` - an array of valid file extensions that are permitted to be loaded (`['jpg', 'png', 'gif', 'jpeg']`)
 * `$config['debug']` - Show reports of internal script errors (`false`)
 
 ## How use
 Filebrowser settings  [Detailt options](http://xdsoft.net/jodit/doc/Jodit.defaultOptions.html#toc13__anchor)
 ```javascript
-jQuery('#editor').jodit({
+new Jodit('#editor', {
     filebrowser: {
         ajax: {
             url: 'connector/index.php',
@@ -48,7 +50,7 @@ jQuery('#editor').jodit({
 ```
 and uploader options [Detailt options](http://xdsoft.net/jodit/doc/Jodit.defaultOptions.html#toc27__anchor)
 ```javascript
-jQuery('#editor').jodit({
+new Jodit('#editor', {
     uploader: {
         url: 'connector/index.php?action=upload',
     }
@@ -68,6 +70,8 @@ require_once JPATH_BASE . '/includes/framework.php';
 $config = array(
     'root' => JPATH_BASE.'/images/',
     'baseurl' => '/images/',
+    'createThumb' => true,
+    'thumbFolderName' => '_thumbs',
     'extensions' => array('jpg', 'png', 'gif', 'jpeg'),
     'debug' => true,
 );
