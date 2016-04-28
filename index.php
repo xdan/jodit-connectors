@@ -86,9 +86,15 @@ class FileBrowser {
         $this->request = (object)$request;
         $this->config  = (object)$config;
         $this->result  = (object)array('error'=> 1, 'msg' => array(), 'files'=> array());
+
         $this->action  = isset($this->request->action) ?  $this->request->action : 'items';
-        $this->root  = isset($this->config->root) ?  $this->config->root : dirname(__FILE__);
-        
+
+        $this->root  = isset($this->config->root) ?  realpath($this->config->root) . DIRECTORY_SEPARATOR : dirname(__FILE__) . DIRECTORY_SEPARATOR;
+
+        if (!$this->root) {
+            trigger_error('No root path', E_USER_WARNING);
+        }
+
         if ($this->config->debug) {
             error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
             ini_set('display_errors', 0);
@@ -101,9 +107,9 @@ class FileBrowser {
      */
     function getPath ($name = 'path') {
         $relpath = isset($this->request->{$name}) ?  $this->request->{$name} : '';
-        $path = $this->root;
+        $path = realpath($this->root).DIRECTORY_SEPARATOR;
         //always check whether we are below the root category is not reached
-        if (realpath($this->root.$relpath) && strpos(realpath($this->root.$relpath), $this->root) !== false) {
+        if (realpath($path.$relpath) && strpos(realpath($path.$relpath), $this->root) !== false) {
             $path = realpath($this->root.$relpath).DIRECTORY_SEPARATOR;
         }
         return $path;
@@ -112,6 +118,8 @@ class FileBrowser {
     function execute () {
         if (method_exists($this, 'action'.$this->action)) {
             $this->{'action'.$this->action}();
+        } else {
+            trigger_error('This action is not found', E_USER_WARNING);
         }
         $this->result->error = 0;
         $this->result->path = str_replace($this->root, '', $this->getPath());
@@ -124,7 +132,7 @@ class FileBrowser {
         while ($file = readdir($dir)) {
             if ($file != '.' && $file != '..' && is_file($path.$file)) {
                 $info = pathinfo($path.$file);
-                if (!isset($this->config->extensions) or in_array(strtolower($info['extension']), $this->config->extensions)) {
+                if (!isset($info['extension']) or (!isset($this->config->extensions) or in_array(strtolower($info['extension']), $this->config->extensions))) {
                     $item = array(
                         'file' => $file,
                     );
@@ -145,6 +153,7 @@ class FileBrowser {
             }
         }
         $this->result->baseurl = $this->config->baseurl;
+        $this->result->path = str_replace(realpath($this->root) . DIRECTORY_SEPARATOR, '', $this->getPath());
     }
     function actionFolder() {
         $path = $this->getPath();
@@ -171,7 +180,7 @@ class FileBrowser {
             7 => 'Failed to write file to disk.',
             8 => 'A PHP extension stopped the file upload.',
         );
-
+        
         if (isset($_FILES['files']) and is_array($_FILES['files']) and isset($_FILES['files']['name']) and is_array($_FILES['files']['name']) and count($_FILES['files']['name'])) {
             foreach ($_FILES['files']['name'] as $i=>$file) {
                 if ($_FILES['files']['error'][$i]) {
@@ -180,8 +189,8 @@ class FileBrowser {
                 $tmp_name = $_FILES['files']['tmp_name'][$i];
                 if (move_uploaded_file($tmp_name, $file = $path.$this->makeSafe($_FILES['files']['name'][$i]))) {
                     $info = pathinfo($file);
-                    
-                    if (isset($this->config->extensions) and !in_array(strtolower($info['extension']), $this->config->extensions)) {
+
+                    if (!isset($info['extension']) or (isset($this->config->extensions) and !in_array(strtolower($info['extension']), $this->config->extensions))) {
                         unlink($file);
                         trigger_error('File type not in white list', E_USER_WARNING);
                     }
@@ -271,7 +280,7 @@ $config = array(
     'createThumb' => true,
     'thumbFolderName' => '_thumbs',
     'extensions' => array('jpg', 'png', 'gif', 'jpeg'),
-    'debug' => false,
+    'debug' => true,
 );
 
 if (file_exists("config.php")) {
