@@ -2,7 +2,7 @@
 // work with image class
 require_once 'vendor/abeautifulsite/simpleimage/src/abeautifulsite/SimpleImage.php';
 
-class FileBrowser {
+class JoditFileBrowser {
     public $result;
     public $root;
     public $action;
@@ -53,6 +53,9 @@ class FileBrowser {
         if (!$this->config->debug) {
             ob_end_clean();
         }
+        if ($this->result->msg) {
+            $this->result->msg = str_replace($this->config->root, '/', $this->result->msg);
+        }
         exit(json_encode($this->result));
     }
     
@@ -81,7 +84,7 @@ class FileBrowser {
         ob_start();
         header('Content-Type: application/json');
 
-        set_error_handler(array($this, 'errorHandler'), E_ALL);
+        set_error_handler(array($this, 'errorHandler'), $this->config->debug ? E_ALL : E_USER_WARNING);
 
         $this->request = (object)$request;
         $this->config  = (object)$config;
@@ -129,6 +132,8 @@ class FileBrowser {
     function actionItems() {
         $path = $this->getPath();
         $dir = opendir($path);
+        $this->result->baseurl = $this->config->baseurl;
+        $this->result->path = str_replace(realpath($this->root) . DIRECTORY_SEPARATOR, '', $this->getPath());
         while ($file = readdir($dir)) {
             if ($file != '.' && $file != '..' && is_file($path.$file)) {
                 $info = pathinfo($path.$file);
@@ -152,8 +157,6 @@ class FileBrowser {
                 }
             }
         }
-        $this->result->baseurl = $this->config->baseurl;
-        $this->result->path = str_replace(realpath($this->root) . DIRECTORY_SEPARATOR, '', $this->getPath());
     }
     function actionFolder() {
         $path = $this->getPath();
@@ -162,7 +165,7 @@ class FileBrowser {
 
         $dir = opendir($path);
         while ($file = readdir($dir)) {
-            if ($file != '.' && $file != '..' && is_dir($path.$file) and (!$this->config->createThumb || $file !== $this->config->thumbFolderName)) {
+            if ($file != '.' && $file != '..' && is_dir($path.$file) and (!$this->config->createThumb || $file !== $this->config->thumbFolderName) and !in_array($file, $this->config->excludeDirectoryNames)) {
                 $this->result->files[] = $file;
             }
         }
@@ -223,10 +226,31 @@ class FileBrowser {
         }
 
         if ($filepath) {
+            $result = false;
             if (is_file($filepath)) {
-                unlink($filepath);
+                $result = unlink($filepath);
+                if ($result) {
+                    $file = basename($filepath);
+                    $thumb = dirname($filepath) . DIRECTORY_SEPARATOR . $this->config->thumbFolderName . DIRECTORY_SEPARATOR . $file;
+                    if (file_exists($thumb)) {
+                        unlink($thumb);
+                        if (!count(glob(dirname($thumb) . DIRECTORY_SEPARATOR . "*"))) {
+                            rmdir(dirname($thumb));
+                        }
+                    }
+                }
             } else {
-                rmdir($filepath);
+                $thumb = $filepath . DIRECTORY_SEPARATOR . $this->config->thumbFolderName . DIRECTORY_SEPARATOR;
+                if (is_dir($thumb)) {
+                    if (!count(glob($thumb . "*"))) {
+                        rmdir($thumb);
+                    }
+                }
+                $result = rmdir($filepath);
+            }
+            if (!$result) {
+                $error = (object)error_get_last();
+                trigger_error('Delete failed! '.$error->message, E_USER_WARNING);
             }
         } else {
             trigger_error('The destination path has not been set', E_USER_WARNING);
@@ -279,15 +303,16 @@ $config = array(
     'baseurl' => 'files/',
     'createThumb' => true,
     'thumbFolderName' => '_thumbs',
+    'excludeDirectoryNames' => array('.tmb', '.quarantine'),
     'extensions' => array('jpg', 'png', 'gif', 'jpeg'),
-    'debug' => true,
+    'debug' => false,
 );
 
 if (file_exists("config.php")) {
     include "config.php";
 }
 
-$filebrowser = new FileBrowser($_REQUEST, $config);
+$filebrowser = new JoditFileBrowser($_REQUEST, $config);
 
 $filebrowser->checkPermissions();
 

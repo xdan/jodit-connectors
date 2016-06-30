@@ -25,6 +25,7 @@ and adjust options
 * `$config['baseurl']` - Root URL for user files (exp. `http://xdsoft.net`)
 * `$config['createThumb']` - boolean, true - create thumbnails for previews (`true`)
 * `$config['thumbFolderName']` - thumbnails folder
+* `$config['excludeDirectoryNames']` - exlude these folders
 * `$config['extensions']` - an array of valid file extensions that are permitted to be loaded (`['jpg', 'png', 'gif', 'jpeg']`)
 * `$config['debug']` - Show reports of internal script errors (`false`)
 
@@ -67,11 +68,12 @@ define('JPATH_BASE', realpath(realpath(__DIR__).'/../../../../../')); // replace
 require_once JPATH_BASE . '/includes/defines.php';
 require_once JPATH_BASE . '/includes/framework.php';
 
-$config = array(
+$config = array_merge($config, array(
     'root' => JPATH_BASE.'/images/',
     'baseurl' => '/images/',
     'createThumb' => true,
     'thumbFolderName' => '_thumbs',
+    'thumbFolderName' => array('.tmb', '.quarantine'),
     'extensions' => array('jpg', 'png', 'gif', 'jpeg'),
     'debug' => true,
 );
