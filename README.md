@@ -5,7 +5,7 @@ Official [Jodit WYSIWYG](http://xdsoft.net/jodit) connector
 composer require jodit/connector
 ```
 ## Options
-Open `index.php`
+Create `config.jodit.php` in connector's root directory. (or `config.php` or `../config.jodit.php`)
 Rewrite the function check permissions. By default it has view
 ```php
 function checkPermissions () {
@@ -20,6 +20,7 @@ function checkPermissions () {
     /********************************************************************************/
 }
 ```
+
 and adjust options 
 * `$config['root']` - the root directory for user files
 * `$config['baseurl']` - Root URL for user files (exp. `http://xdsoft.net`)

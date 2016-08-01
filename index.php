@@ -1,6 +1,5 @@
 <?php
-// work with image class
-require_once 'vendor/abeautifulsite/simpleimage/src/abeautifulsite/SimpleImage.php';
+require_once 'vendor/autoload.php';
 
 class JoditFileBrowser {
     public $result;
@@ -111,10 +110,15 @@ class JoditFileBrowser {
     function getPath ($name = 'path') {
         $relpath = isset($this->request->{$name}) ?  $this->request->{$name} : '';
         $path = realpath($this->root).DIRECTORY_SEPARATOR;
+
         //always check whether we are below the root category is not reached
         if (realpath($path.$relpath) && strpos(realpath($path.$relpath), $this->root) !== false) {
-            $path = realpath($this->root.$relpath).DIRECTORY_SEPARATOR;
+            $path = realpath($this->root.$relpath);
+            if (is_dir($path)) {
+                $path .= DIRECTORY_SEPARATOR;
+            }
         }
+ 
         return $path;
     }
 
@@ -280,7 +284,7 @@ class JoditFileBrowser {
     }
     function actionMove() {
         $dstpath = $this->getPath();
-        $srcpath = $this->getPath('file');
+        $srcpath = $this->getPath('filepath');
 
         if ($srcpath) {
             if ($dstpath) {
@@ -305,10 +309,14 @@ $config = array(
     'thumbFolderName' => '_thumbs',
     'excludeDirectoryNames' => array('.tmb', '.quarantine'),
     'extensions' => array('jpg', 'png', 'gif', 'jpeg'),
-    'debug' => false,
+    'debug' => true,
 );
 
-if (file_exists("config.php")) {
+if (file_exists("config.jodit.php")) {
+    include "config.jodit.php";
+} else if (file_exists("../config.jodit.php")) {
+    include "../config.jodit.php";
+} else if (file_exists("config.php")) {
     include "config.php";
 }
 
