@@ -1,0 +1,22 @@
+{
+  "name": "jodit-connector",
+  "version": "2.5.4",
+  "description": "Official Jodit connector",
+  "main": "index.js",
+  "scripts": {
+    "github" : "composer update && git add --all  && git commit -m \"New version %npm_package_version%. Read more http://xdsoft.net/jodit/doc/index.html#%npm_package_version% \" && git tag %npm_package_version% && git push --tags origin HEAD:master",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xdan/jodit-connectors.git"
+  },
+  "authors": [
+    "Chupurnov Valeriy <skoder@ya.ru>"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xdan/jodit-connectors/issues"
+  },
+  "homepage": "https://github.com/xdan/jodit-connectors#readme"
+}

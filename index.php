@@ -109,7 +109,7 @@ class JoditFileBrowser {
      */
     function getPath ($name = 'path') {
         $relpath = isset($this->request->{$name}) ?  $this->request->{$name} : '';
-        $path = realpath($this->root).DIRECTORY_SEPARATOR;
+        $path = realpath($this->root) . DIRECTORY_SEPARATOR;
 
         //always check whether we are below the root category is not reached
         if (realpath($path.$relpath) && strpos(realpath($path.$relpath), $this->root) !== false) {
@@ -153,7 +153,7 @@ class JoditFileBrowser {
                             $img = new abeautifulsite\SimpleImage($path.$file);
                             $img
                                 ->fit_to_height(100)
-                                ->save($path.$this->config->thumbFolderName.'/'.$file, 90);
+                                ->save($path.$this->config->thumbFolderName.'/'.$file, $this->config->quality);
                         }
                         $item['thumb'] = $this->config->thumbFolderName.'/'.$file;
                     }
@@ -224,7 +224,7 @@ class JoditFileBrowser {
 
         $path = $this->getPath();
         $target = isset($_REQUEST['target']) ?  $_REQUEST['target'] : '';
-        
+
         if (realpath($path.$target) && strpos(realpath($path.$target), $this->root) !== false) {
             $filepath = realpath($path.$target);
         }
@@ -300,10 +300,98 @@ class JoditFileBrowser {
             trigger_error('Need source path', E_USER_WARNING);
         }
     }
+    private function getImageEditorInfo() {
+        $path = $this->getPath();
+        $file = isset($this->request->file) ?  $this->request->file : '';;
+        $box = isset($this->request->box) ?  (object)$this->request->box : '';
+        $newname = !empty($this->request->newname) ?  $this->makeSafe($this->request->newname) : '';
+        
+        if (!$path || !file_exists($path . $file)) {
+            trigger_error('Image file is not specified', E_USER_WARNING);
+        }
+
+        $img = new abeautifulsite\SimpleImage();
+
+        try {
+            $img->load($path . $file);
+        } catch (Exception $e) {
+            trigger_error($e->getMessage(), E_USER_WARNING);
+        }
+
+        if ($newname) {
+            $info = pathinfo($path . $file);
+            $newname = $newname . '.' . $info['extension'];
+            if (file_exists($path . $newname)) {                
+                trigger_error('File ' . $newname . ' already exists', E_USER_WARNING);
+            }
+        } else {
+            $newname = $file;
+        }
+        
+        $info = $img->get_original_info();
+        
+        return (object)array(
+            'path' => $path,
+            'file' => $file,
+            'box' => $box,
+            'newname' => $newname,
+            'img' => $img,
+            'width' => $info['width'],
+            'height' => $info['height'],
+        );
+    }
+    function actionResize() {
+        
+        $info = $this->getImageEditorInfo();
+
+        if ((int)$info->box->w <= 0) {
+            trigger_error('Width not specified', E_USER_WARNING);
+        }
+
+        if ((int)$info->box->h <= 0) {
+            trigger_error('Height not specified', E_USER_WARNING);
+        }
+        
+        try {
+            $info->img
+                ->resize((int)$info->box->w, (int)$info->box->h)
+                ->save($info->path.$info->newname, $this->config->quality);
+        } catch (Exception $e) {
+            trigger_error($e->getMessage(), E_USER_WARNING);
+        }
+    }
+    function actionCrop() {
+        $info = $this->getImageEditorInfo();
+
+        if ((int)$info->box->x < 0 || (int)$info->box->x > (int)$info->width) {
+            trigger_error('Start X not specified', E_USER_WARNING);
+        }
+
+        if ((int)$info->box->y < 0 || (int)$info->box->y > (int)$info->height) {
+            trigger_error('Start Y not specified', E_USER_WARNING);
+        }
+
+        if ((int)$info->box->w <= 0) {
+            trigger_error('Width not specified', E_USER_WARNING);
+        }
+
+        if ((int)$info->box->h <= 0) {
+            trigger_error('Height not specified', E_USER_WARNING);
+        }
+
+        try {
+            $info->img
+                ->crop((int)$info->box->x, (int)$info->box->y, (int)$info->box->x + (int)$info->box->w, (int)$info->box->y + (int)$info->box->h)
+                ->save($info->path.$info->newname, $this->config->quality);
+        } catch (Exception $e) {
+            trigger_error($e->getMessage(), E_USER_WARNING);
+        }
+    }
 }
 
 $config = array(
-    'root' => realpath(realpath(dirname(__FILE__).DIRECTORY_SEPARATOR.'..').DIRECTORY_SEPARATOR.'files'.DIRECTORY_SEPARATOR). DIRECTORY_SEPARATOR,
+    'quality' => 90,
+    'root' => realpath(realpath(dirname(__FILE__). DIRECTORY_SEPARATOR . '..') . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR). DIRECTORY_SEPARATOR,
     'baseurl' => 'files/',
     'createThumb' => true,
     'thumbFolderName' => '_thumbs',

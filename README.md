@@ -22,6 +22,7 @@ function checkPermissions () {
 ```
 
 and adjust options 
+* `$config['quality']` - image quality
 * `$config['root']` - the root directory for user files
 * `$config['baseurl']` - Root URL for user files (exp. `http://xdsoft.net`)
 * `$config['createThumb']` - boolean, true - create thumbnails for previews (`true`)
