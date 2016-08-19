@@ -7,6 +7,53 @@ class JoditFileBrowser {
     public $action;
     public $request = array();
     
+    private function humanFilesize($bytes, $decimals = 2) {
+        $size = array('B','kB','MB','GB','TB','PB','EB','ZB','YB');
+        $factor = floor((strlen($bytes) - 1) / 3);
+        return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$size[$factor];
+    }
+
+    private function getImageEditorInfo() {
+        $path = $this->getPath();
+        $file = isset($this->request->file) ?  $this->request->file : '';;
+        $box = isset($this->request->box) ?  (object)$this->request->box : '';
+        $newname = !empty($this->request->newname) ?  $this->makeSafe($this->request->newname) : '';
+        
+        if (!$path || !file_exists($path . $file)) {
+            trigger_error('Image file is not specified', E_USER_WARNING);
+        }
+
+        $img = new abeautifulsite\SimpleImage();
+
+        try {
+            $img->load($path . $file);
+        } catch (Exception $e) {
+            trigger_error($e->getMessage(), E_USER_WARNING);
+        }
+
+        if ($newname) {
+            $info = pathinfo($path . $file);
+            $newname = $newname . '.' . $info['extension'];
+            if (file_exists($path . $newname)) {                
+                trigger_error('File ' . $newname . ' already exists', E_USER_WARNING);
+            }
+        } else {
+            $newname = $file;
+        }
+        
+        $info = $img->get_original_info();
+        
+        return (object)array(
+            'path' => $path,
+            'file' => $file,
+            'box' => $box,
+            'newname' => $newname,
+            'img' => $img,
+            'width' => $info['width'],
+            'height' => $info['height'],
+        );
+    }
+
     private function translit ($str) {
         $str = (string)$str;
 
@@ -152,10 +199,12 @@ class JoditFileBrowser {
                         if (!file_exists($path.$this->config->thumbFolderName.'/'.$file)) {
                             $img = new abeautifulsite\SimpleImage($path.$file);
                             $img
-                                ->fit_to_height(100)
+                                ->best_fit(150, 150)
                                 ->save($path.$this->config->thumbFolderName.'/'.$file, $this->config->quality);
                         }
                         $item['thumb'] = $this->config->thumbFolderName.'/'.$file;
+                        $item['changed'] = date($this->config->datetimeFormat, filemtime($path.$file));
+                        $item['size'] = $this->humanFilesize(filesize($path.$file));
                     }
                     $this->result->files[] = $item;
                 }
@@ -300,46 +349,6 @@ class JoditFileBrowser {
             trigger_error('Need source path', E_USER_WARNING);
         }
     }
-    private function getImageEditorInfo() {
-        $path = $this->getPath();
-        $file = isset($this->request->file) ?  $this->request->file : '';;
-        $box = isset($this->request->box) ?  (object)$this->request->box : '';
-        $newname = !empty($this->request->newname) ?  $this->makeSafe($this->request->newname) : '';
-        
-        if (!$path || !file_exists($path . $file)) {
-            trigger_error('Image file is not specified', E_USER_WARNING);
-        }
-
-        $img = new abeautifulsite\SimpleImage();
-
-        try {
-            $img->load($path . $file);
-        } catch (Exception $e) {
-            trigger_error($e->getMessage(), E_USER_WARNING);
-        }
-
-        if ($newname) {
-            $info = pathinfo($path . $file);
-            $newname = $newname . '.' . $info['extension'];
-            if (file_exists($path . $newname)) {                
-                trigger_error('File ' . $newname . ' already exists', E_USER_WARNING);
-            }
-        } else {
-            $newname = $file;
-        }
-        
-        $info = $img->get_original_info();
-        
-        return (object)array(
-            'path' => $path,
-            'file' => $file,
-            'box' => $box,
-            'newname' => $newname,
-            'img' => $img,
-            'width' => $info['width'],
-            'height' => $info['height'],
-        );
-    }
     function actionResize() {
         
         $info = $this->getImageEditorInfo();
@@ -390,6 +399,7 @@ class JoditFileBrowser {
 }
 
 $config = array(
+    'datetimeFormat' => 'm/d/Y H:i A',
     'quality' => 90,
     'root' => realpath(realpath(dirname(__FILE__). DIRECTORY_SEPARATOR . '..') . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR). DIRECTORY_SEPARATOR,
     'baseurl' => 'files/',
