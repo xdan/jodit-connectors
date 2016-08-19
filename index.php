@@ -41,6 +41,10 @@ class JoditFileBrowser {
             $newname = $file;
         }
         
+        if (file_exists($path.$this->config->thumbFolderName. DIRECTORY_SEPARATOR .$newname)) {                
+            unlink($path.$this->config->thumbFolderName. DIRECTORY_SEPARATOR .$newname);
+        }
+        
         $info = $img->get_original_info();
         
         return (object)array(
@@ -196,13 +200,13 @@ class JoditFileBrowser {
                         if (!is_dir($path.$this->config->thumbFolderName)) {
                             mkdir($path.$this->config->thumbFolderName, 0777);
                         }
-                        if (!file_exists($path.$this->config->thumbFolderName.'/'.$file)) {
+                        if (!file_exists($path.$this->config->thumbFolderName. DIRECTORY_SEPARATOR . $file)) {
                             $img = new abeautifulsite\SimpleImage($path.$file);
                             $img
                                 ->best_fit(150, 150)
-                                ->save($path.$this->config->thumbFolderName.'/'.$file, $this->config->quality);
+                                ->save($path.$this->config->thumbFolderName. DIRECTORY_SEPARATOR .$file, $this->config->quality);
                         }
-                        $item['thumb'] = $this->config->thumbFolderName.'/'.$file;
+                        $item['thumb'] = $this->config->thumbFolderName. DIRECTORY_SEPARATOR .$file;
                         $item['changed'] = date($this->config->datetimeFormat, filemtime($path.$file));
                         $item['size'] = $this->humanFilesize(filesize($path.$file));
                     }
@@ -396,6 +400,35 @@ class JoditFileBrowser {
             trigger_error($e->getMessage(), E_USER_WARNING);
         }
     }
+
+    /**
+     * Get filepath by URL for local files
+     *
+     * @metod actionGetFileByURL
+     */
+    function actionGetFileByURL() {
+        $url = $this->request->url;
+        if (!$url) {
+            trigger_error('Need url', E_USER_WARNING);
+        }
+
+        $parts = parse_url($url);
+
+        if (empty($parts['path'])) {
+            trigger_error('Clear url', E_USER_WARNING);
+        }
+        
+        $base = parse_url($this->config->baseurl);
+        $path = preg_replace('#^(/)?'.$base['path'].'#', '', $parts['path']);
+        $root = $this->getPath();
+
+        if (!file_exists($root.$path) || !is_file($root.$path)) {
+            trigger_error('File does not exist or is above the root of the connector', E_USER_WARNING);
+        }
+        
+        $this->result->path = str_replace($root, '', dirname($root.$path));
+        $this->result->name = basename($path);
+    }
 }
 
 $config = array(
@@ -407,7 +440,7 @@ $config = array(
     'thumbFolderName' => '_thumbs',
     'excludeDirectoryNames' => array('.tmb', '.quarantine'),
     'extensions' => array('jpg', 'png', 'gif', 'jpeg'),
-    'debug' => true,
+    'debug' => false,
 );
 
 if (file_exists("config.jodit.php")) {
