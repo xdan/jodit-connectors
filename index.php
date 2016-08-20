@@ -432,7 +432,7 @@ class JoditFileBrowser {
 }
 
 $config = array(
-    'datetimeFormat' => 'm/d/Y H:i A',
+    'datetimeFormat' => 'm/d/Y g:i A',
     'quality' => 90,
     'root' => realpath(realpath(dirname(__FILE__). DIRECTORY_SEPARATOR . '..') . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR). DIRECTORY_SEPARATOR,
     'baseurl' => 'files/',
