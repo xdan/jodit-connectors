@@ -108,6 +108,23 @@ class JoditFileBrowser {
         }
         exit(json_encode($this->result));
     }
+
+    /**
+     * Universal function for checking session status.
+     *
+     * @method isSessionStarted
+     * @return {boolean}
+     */
+    private function isSessionStarted() {
+        if (php_sapi_name() !== 'cli') {
+            if (version_compare(phpversion(), '5.4.0', '>=')) {
+                return session_status() === PHP_SESSION_ACTIVE ? TRUE : FALSE;
+            } else {
+                return session_id() === '' ? FALSE : TRUE;
+            }
+        }
+        return FALSE;
+    }
     
     /**
      * Check whether the user has the ability to view files
@@ -119,6 +136,9 @@ class JoditFileBrowser {
         }
         /********************************************************************************/
         // rewrite this code for your system
+        if (!$this->isSessionStarted()) {            
+            session_start();
+        }
         if (empty($_SESSION['filebrowser'])) {
             $this->display(1, 'You do not have permission to view this directory');
         }
@@ -130,7 +150,6 @@ class JoditFileBrowser {
      * @param {array} $request Request
      */
     function __construct ($request, $config) {
-        session_start();
         ob_start();
         header('Content-Type: application/json');
 
@@ -207,9 +226,9 @@ class JoditFileBrowser {
                                 ->save($path.$this->config->thumbFolderName. DIRECTORY_SEPARATOR .$file, $this->config->quality);
                         }
                         $item['thumb'] = $this->config->thumbFolderName. DIRECTORY_SEPARATOR .$file;
-                        $item['changed'] = date($this->config->datetimeFormat, filemtime($path.$file));
-                        $item['size'] = $this->humanFilesize(filesize($path.$file));
                     }
+                    $item['changed'] = date($this->config->datetimeFormat, filemtime($path.$file));
+                    $item['size'] = $this->humanFilesize(filesize($path.$file));
                     $this->result->files[] = $item;
                 }
             }
