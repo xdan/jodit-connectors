@@ -1,10 +1,11 @@
 {
   "name": "jodit-connector",
-  "version": "2.5.30",
+  "version": "2.5.32",
   "description": "Official Jodit connector",
   "main": "index.js",
   "scripts": {
-    "github" : "composer update && git add --all  && git commit -m \"New version %npm_package_version%. Read more http://xdsoft.net/jodit/doc/index.html#%npm_package_version% \" && git tag %npm_package_version% && git push --tags origin HEAD:master",
+    "clear" : "rm -rf vendor/abeautifulsite/simpleimage/example || true",
+    "github" : "composer update && npm run clear && git add --all  && git commit -m \"New version %npm_package_version%. Read more http://xdsoft.net/jodit/doc/index.html#%npm_package_version% \" && git tag %npm_package_version% && git push --tags origin HEAD:master",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

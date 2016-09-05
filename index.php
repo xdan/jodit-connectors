@@ -1,4 +1,9 @@
 <?php
+/**
+ * @copyright	Copyright (c) 2016 editors. All rights reserved.
+ * @license		http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL
+ */
+ 
 require_once 'vendor/autoload.php';
 
 class JoditFileBrowser {
