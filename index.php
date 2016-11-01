@@ -252,6 +252,24 @@ class JoditFileBrowser {
         }
     }
 
+    /**
+     * Converts from human readable file size (kb,mb,gb,tb) to bytes
+     *
+     * @param {string|int} human readable file size. Example 1gb or 11.2mb
+     * @return {int}
+     */
+    private function convertToBytes($from) {
+        if (is_numeric($from)) {
+            return $from;
+        }
+
+        $number = substr($from, 0, -2);
+        $formats = array("KB", "MB", "GB", "TB");
+        $format = strtoupper(substr($from, -2));
+
+        return in_array($format, $formats) ? $number * pow(1024, array_search($format, $formats) + 1) : (int)$from;
+    }
+
     function actionUpload() {
         $path = $this->getPath();
         $errors = array(
@@ -270,7 +288,14 @@ class JoditFileBrowser {
                 if ($_FILES['files']['error'][$i]) {
                     trigger_error(isset($errors[$_FILES['files']['error'][$i]]) ? $errors[$_FILES['files']['error'][$i]] : 'Error', E_USER_WARNING);
                 }
+
                 $tmp_name = $_FILES['files']['tmp_name'][$i];
+
+                if ($this->config->maxFileSize and filesize($tmp_name) > $this->convertToBytes($this->config->maxFileSize)) {
+                    unlink($tmp_name);
+                    trigger_error('File size exceeds the allowable', E_USER_WARNING);
+                }
+
                 if (move_uploaded_file($tmp_name, $file = $path.$this->makeSafe($_FILES['files']['name'][$i]))) {
                     $info = pathinfo($file);
 
@@ -463,6 +488,7 @@ $config = array(
     'createThumb' => true,
     'thumbFolderName' => '_thumbs',
     'excludeDirectoryNames' => array('.tmb', '.quarantine'),
+    'maxFileSize' => '1kb',
     'extensions' => array('jpg', 'png', 'gif', 'jpeg'),
     'debug' => false,
 );
