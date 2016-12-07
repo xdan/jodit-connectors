@@ -269,6 +269,81 @@ class JoditFileBrowser {
 
         return in_array($format, $formats) ? $number * pow(1024, array_search($format, $formats) + 1) : (int)$from;
     }
+    
+    /**
+     * Check by mimetype what file is image
+     *
+     * @param string $path
+     * @return {boolean}
+     */
+    private function isImage($path) {
+        if (!function_exists('exif_imagetype')) {
+            function exif_imagetype ( $filename ) {
+                if ( ( list($width, $height, $type, $attr) = getimagesize( $filename ) ) !== false ) {
+                    return $type;
+                }
+                return false;
+            }
+        }
+        return in_array(exif_imagetype($path) , array(IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP));
+    }
+
+    private function download($url, $saveto) {
+        if (!ini_get('allow_url_fopen')) {
+            trigger_error('allow_url_fopen is disable', E_USER_WARNING);
+        }
+        
+        if (!function_exists('curl_init')) {
+            file_put_contents($saveto, file_get_contents($url));
+            return;
+        }
+
+        $ch = curl_init ($url);
+ 
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_BINARYTRANSFER,1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);// таймаут4
+
+        $result = parse_url($url);
+        curl_setopt($ch, CURLOPT_REFERER, $result['scheme'].'://'.$result['host']);
+        curl_setopt($ch, CURLOPT_USERAGENT,'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0');
+        
+        $raw = curl_exec($ch);
+
+        curl_close ($ch);
+
+        file_put_contents($saveto, $raw);
+    
+        if (!$this->isImage($saveto)) {
+            trigger_error('Bad image ' . $saveto, E_USER_WARNING);
+        }
+    }
+
+    function actionUploadRemote() {
+        $url = $this->request->url;
+        if (!$url) {
+            trigger_error('Need url', E_USER_WARNING);
+        }
+
+        $result = parse_url($url);
+
+        if (!isset($result['host']) || !isset($result['path'])) {
+            trigger_error('Not valid URL', E_USER_WARNING);
+        }
+        
+        $filename = $this->makeSafe(basename($result['path']));
+        
+        if (!$filename) {
+            trigger_error('Not valid URL', E_USER_WARNING);
+        }
+
+        $this->download($url, $this->root . $filename);
+        $this->result->newpath = $filename;
+        $this->result->baseurl = $this->config->baseurl;
+    }
 
     function actionUpload() {
         $path = $this->getPath();
@@ -483,12 +558,12 @@ class JoditFileBrowser {
 $config = array(
     'datetimeFormat' => 'm/d/Y g:i A',
     'quality' => 90,
-    'root' => realpath(realpath(dirname(__FILE__). DIRECTORY_SEPARATOR . '..') . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR). DIRECTORY_SEPARATOR,
+    'root' => realpath(realpath(dirname(__FILE__) . '/..') . '/files') . DIRECTORY_SEPARATOR,
     'baseurl' => 'files/',
     'createThumb' => true,
     'thumbFolderName' => '_thumbs',
     'excludeDirectoryNames' => array('.tmb', '.quarantine'),
-    'maxFileSize' => '1kb',
+    'maxFileSize' => '8mb',
     'extensions' => array('jpg', 'png', 'gif', 'jpeg'),
     'debug' => false,
 );

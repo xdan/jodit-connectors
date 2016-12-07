@@ -29,7 +29,7 @@ and adjust options
 * `$config['thumbFolderName']` - thumbnails folder
 * `$config['excludeDirectoryNames']` - exlude these folders
 * `$config['extensions']` - an array of valid file extensions that are permitted to be loaded (`['jpg', 'png', 'gif', 'jpeg']`)
-* `$config['maxFileSize']` - Maximum file size (0 - is unlimited)
+* `$config['maxFileSize']` - Maximum file size (0 - is unlimited) default 8Mb
 * `$config['debug']` - Show reports of internal script errors (`false`)
 
 ## How use
