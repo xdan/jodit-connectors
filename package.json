@@ -1,12 +1,12 @@
 {
   "name": "jodit-connector",
-  "version": "2.5.62",
+  "version": "3.0.0",
   "description": "Official Jodit connector",
   "main": "index.js",
   "scripts": {
-    "clear" : "rm -rf vendor/abeautifulsite/simpleimage/example || true",
-    "github" : "composer update && npm run clear && git add --all  && git commit -m \"New version %npm_package_version%. Read more http://xdsoft.net/jodit/doc/index.html#%npm_package_version% \" && git tag %npm_package_version% && git push --tags origin HEAD:master",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "github" : "composer update && git add --all  && git commit -m \"New version %npm_package_version%. Read more http://xdsoft.net/jodit/doc/index.html#%npm_package_version% \" && git tag %npm_package_version% && git push --tags origin HEAD:master",
+    "test": "./vendor/bin/codecept run",
+    "start": "php -S localhost:8181 -t ./"
   },
   "repository": {
     "type": "git",
@@ -15,7 +15,7 @@
   "authors": [
     "Chupurnov Valeriy <skoder@ya.ru>"
   ],
-  "license": "MIT",
+  "license": "LICENSE",
   "bugs": {
     "url": "https://github.com/xdan/jodit-connectors/issues"
   },

@@ -1,6 +1,6 @@
 {
     "name": "jodit/connector",
-    "version": "1.1.1",
+    "version": "3.0.0",
     "description": "Jodit FileBrowser and Uploader connector",
     "license": "MIT",
     "authors": [
@@ -10,7 +10,10 @@
         }
     ],
     "require": {
-        "php": ">=5.3.0",
+        "php": ">=5.4.0",
         "abeautifulsite/simpleimage": "^2.6"
+    },
+    "require-dev": {
+        "codeception/codeception": "^2.3"
     }
 }

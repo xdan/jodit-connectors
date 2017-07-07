@@ -1,4 +1,11 @@
 config.php
-/vendor/
+Application.php
+vendor/
 
 composer.lock
+.idea/
+
+tests/_data/
+tests/_output/
+tests/_support/
+tests/acceptance/
