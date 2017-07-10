@@ -32,12 +32,16 @@ class Request {
         return $result;
     }
 }
+
+/**
+ * Class Response
+ * @package jodit
+ */
 class Response {
     public $success = true;
     public $time;
 
     public $data = [
-        'sources' => [],
         'messages' => [],
         'code' => 220,
     ];
@@ -46,20 +50,28 @@ class Response {
         $this->time = date('Y-m-d H:i:s');
         $this->data = (object)$this->data;
     }
+}
 
-    function display() {
-        if (!JODIT_DEBUG) {
-            ob_end_clean();
-            header('Content-Type: application/json');
+/**
+ * Class Source
+ * @package jodit
+ */
+class Source {
+    private $data = [];
+    private $defaultOptuions = [];
+    function __get($key) {
+        if (!empty($this->data->{$key})) {
+            return $this->data->{$key};
+        }
+        if ($this->defaultOptuions->{$key}) {
+            return $this->defaultOptuions->{$key};
         }
 
-//        if ($this->data->messages) {
-//            foreach ($this->data->messages as &$message) {
-//                $message = str_replace($path, '/', $message);
-//            }
-//        }
-
-        exit(json_encode($this, JODIT_DEBUG ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES: 0));
+        throw new \ErrorException('Option ' . $key . ' not set', 501);
+    }
+    function __construct($data, $defaultOptuions) {
+        $this->data = (object)$data;
+        $this->defaultOptuions = (object)$defaultOptuions;
     }
 }
 
@@ -72,15 +84,33 @@ abstract class JoditApplication {
      */
     abstract public function checkPermissions ();
 
+    function display () {
+        if (!JODIT_DEBUG) {
+            ob_end_clean();
+            header('Content-Type: application/json');
+        }
+
+        // replace full path from message
+        foreach ($this->config->sources as $source) {
+            if (isset($this->response->data->messages)) {
+                foreach ($this->response->data->messages as &$message) {
+                    $message = str_replace($source['root'], '/', $message);
+                }
+            }
+        }
+
+        exit(json_encode($this->response, JODIT_DEBUG ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES: 0));
+    }
     function execute () {
         if (method_exists($this, 'action' . $this->action)) {
-            call_user_func_array([$this, 'action' . $this->action], []);
+            $this->response->data =  (object)call_user_func_array([$this, 'action' . $this->action], []);
         } else {
             throw new \ErrorException('This action is not found', 404);
         }
 
         $this->response->success = true;
-        $this->response->display();
+        $this->response->data->code = 220;
+        $this->display();
     }
 
     /**
@@ -96,7 +126,7 @@ abstract class JoditApplication {
         $this->response  = new Response();
         $this->request  = new Request();
 
-        $this->action  = $this->request->action ?  $this->request->action : 'files';
+        $this->action  = $this->request->action;
 
         if (JODIT_DEBUG) {
             error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
@@ -117,13 +147,13 @@ abstract class JoditApplication {
     /**
      * Get default(first) source or by $_REQUEST['source']
      *
-     * @return array
+     * @return Source
      */
     public function getSource() {
         if (!$this->request->source) {
-            return array_values($this->config->sources)[0];
+            return new Source(array_values($this->config->sources)[0], $this->config);
         }
-        return (object)$this->config->sources[$this->request->source];
+        return new Source($this->config->sources[$this->request->source], $this->config);
     }
 
     /**
@@ -175,14 +205,32 @@ abstract class JoditApplication {
     }
 
     protected function getImageEditorInfo() {
-        $path = $this->getPath();
+        $source = $this->getSource();
+        $path = $this->getPath($source);
 
-        $file = isset($this->request->file) ?  $this->request->file : '';;
-        $box = isset($this->request->box) ?  (object)$this->request->box : '';
-        $newName = !empty($this->request->newname) ?  $this->makeSafe($this->request->newname) : '';
+        $file = $this->request->name;
+
+        $box = (object)[
+            'w' => 0,
+            'h' => 0,
+            'x' => 0,
+            'y' => 0,
+        ];
+
+        if ($this->request->box && is_array($this->request->box)) {
+            foreach ($box as $key=>&$value) {
+                $value = isset($this->request->box[$key]) ? $this->request->box[$key] : 0;
+            }
+        }
+
+        $newName = $this->request->newname ?  $this->makeSafe($this->request->newname) : '';
         
-        if (!$path || !file_exists($path . $file)) {
-            throw new \ErrorException('Image file is not specified', 400);
+        if (!$path || !$file || !file_exists($path . $file) || !is_file($path . $file)) {
+            throw new \ErrorException('Source file not set or not exists', 404);
+        }
+
+        if (!$newName) {
+            throw new \ErrorException('Set new name for file', 400);
         }
 
         $img = new \abeautifulsite\SimpleImage();
@@ -202,7 +250,7 @@ abstract class JoditApplication {
         }
         
         if (file_exists($path . $this->config->thumbFolderName . DIRECTORY_SEPARATOR . $newName)) {
-            unlink($path.$this->config->thumbFolderName . DIRECTORY_SEPARATOR . $newName);
+            unlink($path . $this->config->thumbFolderName . DIRECTORY_SEPARATOR . $newName);
         }
         
         $info = $img->get_original_info();
@@ -255,7 +303,7 @@ abstract class JoditApplication {
         $this->response->data->code = $errorNumber;
         $this->response->data->messages[] = $errorMessage . (JODIT_DEBUG ? ' - file:' . $file . ' line:' . $line : '');
 
-        $this->response->display();
+        $this->display();
     }
     public function exceptionHandler ($exception) {
         $this->errorHandler($exception->getCode(), $exception->getMessage(), $exception->getFile(), $exception->getLine());
@@ -340,29 +388,29 @@ abstract class JoditApplication {
         }
         
         if (!function_exists('curl_init')) {
-            file_put_contents($destinationFilename, file_get_contents($url));
-            return;
+            $raw = file_get_contents($url);
+        } else {
+
+            $ch = curl_init($url);
+
+            curl_setopt($ch, CURLOPT_HEADER, 0);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($ch, CURLOPT_BINARYTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);// таймаут4
+
+            $response = parse_url($url);
+            curl_setopt($ch, CURLOPT_REFERER, $response['scheme'] . '://' . $response['host']);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0');
+
+            $raw = curl_exec($ch);
+
+            curl_close($ch);
         }
 
-        $ch = curl_init ($url);
- 
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_BINARYTRANSFER,1);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);// таймаут4
-
-        $response = parse_url($url);
-        curl_setopt($ch, CURLOPT_REFERER, $response['scheme'] . '://' . $response['host']);
-        curl_setopt($ch, CURLOPT_USERAGENT,'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0');
-        
-        $raw = curl_exec($ch);
-
-        curl_close ($ch);
-
         file_put_contents($destinationFilename, $raw);
-    
+
         if (!$this->isImage($destinationFilename)) {
             unlink($destinationFilename);
             throw new \ErrorException('Bad image ' . $destinationFilename, 406);
@@ -373,6 +421,7 @@ abstract class JoditApplication {
      * Load all files from folder ore source or sources
      */
     protected function actionFiles() {
+        $sources = [];
         foreach ($this->config->sources as $key => $source) {
             if ($this->request->source && $key !== $this->request->source) {
                 continue;
@@ -416,14 +465,19 @@ abstract class JoditApplication {
                 }
             }
 
-            $this->response->data->sources[$key] = $sourceData;
+            $sources[$key] = $sourceData;
         }
+
+        return [
+            'sources' => $sources
+        ];
     }
 
     /**
      * Load all folders from folder ore source or sources
      */
     protected function actionFolders() {
+        $sources = [];
         foreach ($this->config->sources as $key => $source) {
             if ($this->request->source && $key !== $this->request->source) {
                 continue;
@@ -448,13 +502,21 @@ abstract class JoditApplication {
                 }
             }
 
-            $this->response->data->sources[$key] = $sourceData;
+            $sources[$key] = $sourceData;
         }
+
+        return [
+            'sources' => $sources
+        ];
     }
 
-
+    /**
+     * Load remote image by URL to self host
+     * @throws \ErrorException
+     */
     protected function actionUploadRemote() {
         $url = $this->request->url;
+
         if (!$url) {
             throw new \ErrorException('Need url parameter', 400);
         }
@@ -473,47 +535,63 @@ abstract class JoditApplication {
 
         $this->downloadRemoteFile($url, $this->getRoot($this->getSource()) . $filename);
 
-        $this->response->data->sources[$this->request->source] = [
+        return [
             'newfilename' => $filename,
             'baseurl' => $this->getSource()->baseurl,
         ];
     }
+
+
+    static private $upload_errors = [
+        0 => 'There is no error, the file uploaded with success',
+        1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
+        2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
+        3 => 'The uploaded file was only partially uploaded',
+        4 => 'No file was uploaded',
+        6 => 'Missing a temporary folder',
+        7 => 'Failed to write file to disk.',
+        8 => 'A PHP extension stopped the file upload.',
+    ];
+
+    /**
+     * Upload images
+     *
+     * @return array
+     * @throws \ErrorException
+     */
     protected function actionUpload() {
-        $path = $this->getPath();
-        $errors = [
-            0 => 'There is no error, the file uploaded with success',
-            1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
-            2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
-            3 => 'The uploaded file was only partially uploaded',
-            4 => 'No file was uploaded',
-            6 => 'Missing a temporary folder',
-            7 => 'Failed to write file to disk.',
-            8 => 'A PHP extension stopped the file upload.',
-        ];
-        
+
+        $source = $this->getSource();
+
+        $root = $this->getRoot($source);
+        $path = $this->getPath($source);
+
+        $messages = [];
+        $files = [];
+
         if (isset($_FILES['files']) and is_array($_FILES['files']) and isset($_FILES['files']['name']) and is_array($_FILES['files']['name']) and count($_FILES['files']['name'])) {
-            foreach ($_FILES['files']['name'] as $i=>$file) {
+            foreach ($_FILES['files']['name'] as $i => $file) {
                 if ($_FILES['files']['error'][$i]) {
-                    throw new \ErrorException(isset($errors[$_FILES['files']['error'][$i]]) ? $errors[$_FILES['files']['error'][$i]] : 'Error', $_FILES['files']['error'][$i]);
+                    throw new \ErrorException(isset(self::$upload_errors[$_FILES['files']['error'][$i]]) ? self::$upload_errors[$_FILES['files']['error'][$i]] : 'Error', $_FILES['files']['error'][$i]);
                 }
 
                 $tmp_name = $_FILES['files']['tmp_name'][$i];
 
-                if ($this->config->maxFileSize and filesize($tmp_name) > $this->convertToBytes($this->config->maxFileSize)) {
+                if ($source->maxFileSize and filesize($tmp_name) > $this->convertToBytes($source->maxFileSize)) {
                     unlink($tmp_name);
                     throw new \ErrorException('File size exceeds the allowable', 403);
                 }
 
-                if (move_uploaded_file($tmp_name, $file = $path.$this->makeSafe($_FILES['files']['name'][$i]))) {
+                if (move_uploaded_file($tmp_name, $file = $path . $this->makeSafe($_FILES['files']['name'][$i]))) {
                     $info = pathinfo($file);
 
-                    if (!isset($info['extension']) or (isset($this->config->extensions) and !in_array(strtolower($info['extension']), $this->config->extensions))) {
+                    if (!isset($info['extension']) or (!in_array(strtolower($info['extension']), $source->extensions))) {
                         unlink($file);
-                        throw new \ErrorException('File type not in white list', 403);
+                        throw new \ErrorException('File type is not in white list', 403);
                     }
 
-                    $this->response->data->message[] = 'File ' . $_FILES['files']['name'][$i] . ' was upload';
-                    $this->response->data->files[] = str_replace($this->root, '', $file);
+                    $messages[] = 'File ' . $_FILES['files']['name'][$i] . ' was upload';
+                    $files[] = str_replace($root, '', $file);
                 } else {
                     if (!is_writable($path)) {
                         throw new \ErrorException('Destination directory is not writeble', 424);
@@ -522,30 +600,43 @@ abstract class JoditApplication {
                     throw new \ErrorException('No files have been uploaded', 422);
                 }
             }
-            $this->response->data->baseurl = $this->config->baseurl;
         }
  
-        if (!count($this->response->data->files)) {
+        if (!count($files)) {
             throw new \ErrorException('No files have been uploaded', 422);
         }
+
+        return [
+            'baseurl' => $source->baseurl,
+            'messages' => $messages,
+            'files' => $files
+        ];
     }
+
+    /**
+     * Remove file or directory
+     *
+     * @throws \ErrorException
+     */
     protected function actionRemove() {
-        $filepath = false;
+        $source = $this->getSource();
 
-        $path = $this->getPath();
-        $target = isset($_REQUEST['target']) ?  $_REQUEST['target'] : '';
+        $file_path = false;
 
-        if (realpath($path.$target) && strpos(realpath($path.$target), $this->root) !== false) {
-            $filepath = realpath($path.$target);
+        $path = $this->getPath($source);
+
+        $target = $this->request->name;
+
+        if (realpath($path . $target) && strpos(realpath($path . $target), $this->getRoot($source)) !== false) {
+            $file_path = realpath($path . $target);
         }
 
-        if ($filepath) {
-            $result = false;
-            if (is_file($filepath)) {
-                $result = unlink($filepath);
+        if ($file_path && file_exists($file_path)) {
+            if (is_file($file_path)) {
+                $result = unlink($file_path);
                 if ($result) {
-                    $file = basename($filepath);
-                    $thumb = dirname($filepath) . DIRECTORY_SEPARATOR . $this->config->thumbFolderName . DIRECTORY_SEPARATOR . $file;
+                    $file = basename($file_path);
+                    $thumb = dirname($file_path) . DIRECTORY_SEPARATOR . $source->thumbFolderName . DIRECTORY_SEPARATOR . $file;
                     if (file_exists($thumb)) {
                         unlink($thumb);
                         if (!count(glob(dirname($thumb) . DIRECTORY_SEPARATOR . "*"))) {
@@ -554,52 +645,63 @@ abstract class JoditApplication {
                     }
                 }
             } else {
-                $thumb = $filepath . DIRECTORY_SEPARATOR . $this->config->thumbFolderName . DIRECTORY_SEPARATOR;
+                $thumb = $file_path . DIRECTORY_SEPARATOR . $source->thumbFolderName . DIRECTORY_SEPARATOR;
                 if (is_dir($thumb)) {
                     if (!count(glob($thumb . "*"))) {
                         rmdir($thumb);
                     }
                 }
-                $result = rmdir($filepath);
+                $result = rmdir($file_path);
             }
+
             if (!$result) {
                 $error = (object)error_get_last();
-                throw new \ErrorException('Delete failed! '.$error->message, 424);
+                throw new \ErrorException('Delete failed! ' . $error->message, 424);
             }
         } else {
-            throw new \ErrorException('The destination path has not been set', 400);
+            throw new \ErrorException('File or directory not exists' . $path . $target, 400);
         }
     }
+
+    /**
+     * Create directory
+     * @throws \ErrorException
+     */
     protected function actionCreate() {
-        $destinationPath = $this->getPath();
-        $folderName = $this->makeSafe(isset($this->request->name) ?  $this->request->name : '');
+        $source = $this->getSource();
+        $destinationPath = $this->getPath($source);
+        $folderName = $this->makeSafe($this->request->name);
+
         if ($destinationPath) {
             if ($folderName) {
                 if (!realpath($destinationPath . $folderName)) {
-                    mkdir($destinationPath.$folderName, 0777);
-                    if (is_dir($destinationPath.$folderName)) {
-                        $this->response->data->message = 'Directory was created';
-                    } else {
-                        throw new \ErrorException('Directory was not created', 404);
+                    mkdir($destinationPath . $folderName, $source->defaultPermission);
+                    if (is_dir($destinationPath . $folderName)) {
+                        return ['messages' => ['Directory successfully created']];
                     }
-                } else {
-                    throw new \ErrorException('Folder already exists', 406);
+                    throw new \ErrorException('Directory was not created', 404);
                 }
-            } else {
-                throw new \ErrorException('The name for the new folder has not been set', 406);
+                throw new \ErrorException('Directory already exists', 406);
             }
-        } else {
-            throw new \ErrorException('The destination folder has not been set', 406);
+            throw new \ErrorException('The name for new directory has not been set', 406);
         }
+        throw new \ErrorException('The destination directory has not been set', 406);
     }
-    protected function actionMove() {
-        $dstpath = $this->getPath();
-        $srcpath = $this->getPath('filepath');
 
-        if ($srcpath) {
-            if ($dstpath) {
-                if (is_file($srcpath) or is_dir($srcpath)) {
-                    rename($srcpath, $dstpath.basename($srcpath));
+    /**
+     * Move file or directory to another folder
+     *
+     * @throws \ErrorException
+     */
+    protected function actionMove() {
+        $source = $this->getSource();
+        $destination_path = $this->getPath($source);
+        $source_path = $this->getPath($source, 'from');
+
+        if ($source_path) {
+            if ($destination_path) {
+                if (is_file($source_path) or is_dir($source_path)) {
+                    rename($source_path, $destination_path . basename($source_path));
                 } else {
                     throw new \ErrorException('Not file', 404);
                 }
@@ -610,25 +712,32 @@ abstract class JoditApplication {
             throw new \ErrorException('Need source path', 400);
         }
     }
+
+    /**
+     * Resize image
+     *
+     * @throws \ErrorException
+     */
     protected function actionResize() {
-        
+        $source = $this->getSource();
         $info = $this->getImageEditorInfo();
 
-        if ((int)$info->box->w <= 0) {
+        if (!$info->box || (int)$info->box->w <= 0) {
             throw new \ErrorException('Width not specified', 400);
         }
 
-        if ((int)$info->box->h <= 0) {
+        if (!$info->box || (int)$info->box->h <= 0) {
             throw new \ErrorException('Height not specified', 400);
         }
         
 
         $info->img
             ->resize((int)$info->box->w, (int)$info->box->h)
-            ->save($info->path.$info->newname, $this->config->quality);
-
+            ->save($info->path . $info->newname, $source->quality);
     }
+
     protected function actionCrop() {
+        $source = $this->getSource();
         $info = $this->getImageEditorInfo();
 
         if ((int)$info->box->x < 0 || (int)$info->box->x > (int)$info->width) {
@@ -649,7 +758,7 @@ abstract class JoditApplication {
 
         $info->img
             ->crop((int)$info->box->x, (int)$info->box->y, (int)$info->box->x + (int)$info->box->w, (int)$info->box->y + (int)$info->box->h)
-            ->save($info->path.$info->newname, $this->config->quality);
+            ->save($info->path . $info->newname, $source->quality);
 
     }
 
@@ -670,7 +779,7 @@ abstract class JoditApplication {
             throw new \ErrorException('Empty url', 400);
         }
         
-        $source = $this->config->sources->{$this->request->source};
+        $source = $this->getSource();
         $base = parse_url($source->baseurl);
 
         $path = preg_replace('#^(/)?' . $base['path'] . '#', '', $parts['path']);
@@ -681,8 +790,10 @@ abstract class JoditApplication {
         if (!file_exists($root . $path) || !is_file($root . $path)) {
             throw new \ErrorException('File does not exist or is above the root of the connector', 424);
         }
-        
-        $this->response->data->path = str_replace($root, '', dirname($root . $path));
-        $this->response->data->name = basename($path);
+
+        return [
+            'path' => str_replace($root, '', dirname($root . $path) . DIRECTORY_SEPARATOR),
+            'name' => basename($path),
+        ];
     }
 }

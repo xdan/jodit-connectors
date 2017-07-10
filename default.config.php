@@ -2,6 +2,7 @@
 return [
     'datetimeFormat' => 'm/d/Y g:i A',
     'quality' => 90,
+    'defaultPermission' => 0775,
 
     'sources' => [
         'default' => [
