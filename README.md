@@ -347,6 +347,7 @@ Answer JSON example:
 ```
 
 ### Road map
+- [ ] Add pagination
 - [ ] Create FTP/SFTP sources
 - [ ] Create image filters (noise, gray scale etc.)
 
