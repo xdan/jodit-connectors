@@ -142,7 +142,7 @@ GET index.php?action=files&source=:source&path=:path
 * [:source=default] - key from config (ex. from Joomla config - `joomla Media)
 * [:path=source.root] - relative path for source.root
 
-See `tests/api/getAlFilesByAllSourcesCept.php` and  `tests/api/getAllFilesByOneSourceCept.php`
+See [`tests/api/getAlFilesByAllSourcesCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/getAlFilesByAllSourcesCept.php) and  [`tests/api/getAllFilesByOneSourceCept.php`]((https://github.com/xdan/jodit-connectors/blob/master/tests/api/getAllFilesByOneSourceCept.php)
 
 Answer JSON example:
 ```JSON
