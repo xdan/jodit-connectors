@@ -1,5 +1,7 @@
 # Jodit FileBrowser Connector for Jodit 3.0
 Official [Jodit WYSIWYG](http://xdsoft.net/jodit) PHP connector
+---
+[old version](https://github.com/xdan/jodit-connectors/tree/2.5.62) for Jodit 2.x
 ## Install
 ```
 composer require jodit/connector
