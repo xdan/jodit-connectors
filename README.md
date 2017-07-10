@@ -188,7 +188,7 @@ GET index.php?action=folders&source=:source&path=:path
 * [:source=default] - key from config (ex. from Joomla config - `joomla Media)
 * [:path=source.root] - relative path for source.root.
 
-See `tests/api/getAllFoldersByAllSourcesCept.php` and  `tests/api/getAllFoldersByOneSourceCept.php`
+See [`tests/api/getAllFoldersByAllSourcesCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/getAllFoldersByAllSourcesCept.php) and  [`tests/api/getAllFoldersByOneSourceCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/getAllFoldersByOneSourceCept.php)
 
 Answer JSON example:
 ```JSON
@@ -227,7 +227,7 @@ GET index.php?action=uploadremote&source=:source&path=:path&url=:url
 * [:path=source.root] - relative path for source.root.
 * :url - full image URL
 
-See `tests/api/uploadImageByUrlToServerCept.php`
+See [`tests/api/uploadImageByUrlToServerCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/uploadImageByUrlToServerCept.php)
 
 Answer JSON example:
 ```JSON
@@ -258,7 +258,7 @@ $_FILES = [
 * [:path=source.root] - relative path for source.root.
 * :files - files 
 
-See `tests/api/uploadImageToServerCept.php`
+See [`tests/api/uploadImageToServerCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/uploadImageToServerCept.php)
 
 
 
@@ -270,7 +270,7 @@ GET index.php?action=remove&source=:source&path=:path&name=:name
 * [:path=source.root] - relative path for source.root.
 * :name - file name or folder name 
 
-See `tests/api/removeImageFromServerCept.php`
+See [`tests/api/removeImageFromServerCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/removeImageFromServerCept.php)
 
 
 #### create - Create folder on server
@@ -281,7 +281,7 @@ GET index.php?action=create&source=:source&path=:path&name=:name
 * [:path=source.root] - relative path for source.root.
 * :name - new folder name 
 
-See `tests/api/createFolderCept.php`
+See [`tests/api/createFolderCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/createFolderCept.php)
 
 #### move - Move folder or file to another place
 ```
@@ -291,7 +291,7 @@ GET index.php?action=move&source=:source&path=:path&from=:from
 * [:path=source.root] - relative path for source.root. This is where the file will be move
 * :from - relative path (from source.root) file or folder
 
-See `tests/api/moveFileCept.php`
+See [`tests/api/moveFileCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/moveFileCept.php)
 
 
 #### resize - Resize image
@@ -304,7 +304,7 @@ GET index.php?action=resize&source=:source&path=:path&name=:name&box[w]=:box_wid
 * :newname - new file name in `:path`. Can be equal `:name`
 * :box - new width and height
 
-See `tests/api/resizeImageCept.php`
+See [`tests/api/resizeImageCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/resizeImageCept.php)
 
 
 #### crop - Crop image
@@ -317,7 +317,7 @@ GET index.php?action=crop&source=:source&path=:path&name=:name&box[w]=:box_width
 * :newname - new file name in `:path`. Can be equal `:name`
 * :box - bounding box
 
-See `tests/api/cropImageCept.php`
+See [`tests/api/cropImageCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/cropImageCept.php)
 
 #### getlocalfilebyurl - Get local file by URL
 ```
@@ -327,7 +327,7 @@ GET index.php?action=getlocalfilebyurl&source=:source&path=:path&url=:url
 * [:path=source.root] - relative path for source.root.
 * :url - Full fil url for source
 
-See `tests/api/getlocalFileByURLCept.php`
+See [`tests/api/getlocalFileByURLCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/getlocalFileByURLCept.php)
 Example:
 ```
 index.php?action=getlocalfilebyurl&source=test&url=http://localhost:8181/tests/files/artio.jpg
