@@ -6,9 +6,10 @@ Official [Jodit WYSIWYG](http://xdsoft.net/jodit) PHP connector
 ```
 composer require jodit/connector
 ```
-## Options
-Update `config.jodit.php` in connector's root directory.
-Rewrite the function check permissions in Application.php
+## Configuration
+Change `checkPermissions` in `Application.php`
+
+Like this:
 ```php
 function checkPermissions () {
     /********************************************************************************/
@@ -18,8 +19,8 @@ function checkPermissions () {
     /********************************************************************************/
 }
 ```
-
-and adjust options 
+Change `config.php`
+Available options:
 * `$config['quality']` - image quality
 * `$config['root']` - the root directory for user files
 * `$config['baseurl']` - Root URL for user files (exp. `http://xdsoft.net`)
@@ -29,7 +30,7 @@ and adjust options
 * `$config['extensions']` - an array of valid file extensions that are permitted to be loaded (`['jpg', 'png', 'gif', 'jpeg']`)
 * `$config['maxFileSize']` - Maximum file size (0 - is unlimited) default 8Mb
 
-and you can defined several sources 
+you can defined several sources:
 ```php
 $config['sources'] = [
     'images' => [
@@ -344,6 +345,16 @@ Answer JSON example:
     }
 }
 ```
+
+### Road map
+[ ] Create FTP/SFTP sources
+[ ] Create image filters (noise, gray scale etc.)
+
+### Contacts
+* [chupurnov@gmail.com](mailto:chupurnov@gmail.com)
+* Website [xdsoft.net](http://xdsoft.net)
+* [Jodit](http://xdsoft.net/jodit)
+
 
 
  
