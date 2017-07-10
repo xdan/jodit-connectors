@@ -347,8 +347,9 @@ Answer JSON example:
 ```
 
 ### Road map
-[ ] Create FTP/SFTP sources
-[ ] Create image filters (noise, gray scale etc.)
+ [ ] Create FTP/SFTP sources
+ 
+ [ ] Create image filters (noise, gray scale etc.)
 
 ### Contacts
 * [chupurnov@gmail.com](mailto:chupurnov@gmail.com)
