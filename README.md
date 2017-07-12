@@ -348,6 +348,7 @@ Answer JSON example:
 ```
 
 ### Road map
+- [x] Cross Origin requests
 - [ ] Add pagination
 - [ ] Create FTP/SFTP sources
 - [ ] Create image filters (noise, gray scale etc.)
