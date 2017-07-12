@@ -161,9 +161,6 @@ abstract class JoditApplication {
             ini_set('display_errors', 'off');
         }
 
-        if (!in_array($this->action, ['files', 'folders']) and  (!$this->request->source || empty($this->config->sources[$this->request->source]))) {
-            throw new \ErrorException('Need parameter source key', 400);
-        }
         if ($this->request->source && empty($this->config->sources[$this->request->source])) {
             throw new \ErrorException('Need valid parameter source key', 400);
         }
