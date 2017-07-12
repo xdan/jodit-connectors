@@ -5,11 +5,7 @@ return [
     'defaultPermission' => 0775,
 
     'sources' => [
-        'default' => [
-            //'root' => realpath(realpath(dirname(__FILE__) . '/..') . '/files') . DIRECTORY_SEPARATOR,
-            //'baseurl' => 'files/',
-            //'extensions' => ['jpg', 'png', 'gif', 'jpeg'],
-        ],
+        'default' => [],
     ],
 
     'createThumb' => true,
@@ -17,7 +13,9 @@ return [
     'excludeDirectoryNames' => ['.tmb', '.quarantine'],
     'maxFileSize' => '8mb',
 
-//    'baseurl' => ($_SERVER['HTTPS'] ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/',
-//    'root' => __DIR__,
-//    'extensions' => ['jpg', 'png', 'gif', 'jpeg'],
+    'allowCrossOrigin' => false,
+
+    'baseurl' => ($_SERVER['HTTPS'] ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/',
+    'root' => __DIR__,
+    'extensions' => ['jpg', 'png', 'gif', 'jpeg'],
 ];

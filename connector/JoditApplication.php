@@ -84,6 +84,27 @@ abstract class JoditApplication {
      */
     abstract public function checkPermissions ();
 
+    function corsHeaders() {
+        if (isset($_SERVER['HTTP_ORIGIN'])) {
+            header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
+        } else {
+            header("Access-Control-Allow-Origin: *");
+        }
+
+        header('Access-Control-Allow-Credentials: true');
+        header('Access-Control-Allow-Headers: Origin,X-Requested-With,Content-Type,Accept');
+        header('Access-Control-Max-Age: 86400');    // cache for 1 day
+
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
+                header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+            }
+
+            exit(0);
+        }
+
+    }
+
     function display () {
         if (!JODIT_DEBUG) {
             ob_end_clean();
@@ -122,6 +143,10 @@ abstract class JoditApplication {
         set_exception_handler([$this, 'exceptionHandler']);
 
         $this->config  = (object)$config;
+
+        if ($this->config->allowCrossOrigin) {
+            $this->corsHeaders();
+        }
 
         $this->response  = new Response();
         $this->request  = new Request();

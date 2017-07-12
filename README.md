@@ -21,14 +21,15 @@ function checkPermissions () {
 ```
 Change `config.php`
 Available options:
-* `$config['quality']` - image quality
-* `$config['root']` - the root directory for user files
-* `$config['baseurl']` - Root URL for user files (exp. `http://xdsoft.net`)
-* `$config['createThumb']` - boolean, true - create thumbnails for previews (`true`)
-* `$config['thumbFolderName']` - thumbnails folder
-* `$config['excludeDirectoryNames']` - exclude these folders
-* `$config['extensions']` - an array of valid file extensions that are permitted to be loaded (`['jpg', 'png', 'gif', 'jpeg']`)
-* `$config['maxFileSize']` - Maximum file size (0 - is unlimited) default 8Mb
+* `$config['quality'] = 90` - image quality
+* `$config['root'] = __DIR__` - the root directory for user files
+* `$config['baseurl'] = ($_SERVER['HTTPS'] ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/'` - Root URL for user files (exp. `http://xdsoft.net`)
+* `$config['createThumb'] = true` - boolean, true - create thumbnails for previews (`true`)
+* `$config['thumbFolderName'] = '_thumbs'` - thumbnails folder
+* `$config['excludeDirectoryNames'] = ['.tmb', '.quarantine'],` - exclude these folders
+* `$config['extensions'] = ['jpg', 'png', 'gif', 'jpeg']` - an array of valid file extensions that are permitted to be loaded (`['jpg', 'png', 'gif', 'jpeg']`)
+* `$config['maxFileSize'] = 8mb` - Maximum file size (0 - is unlimited) default 8Mb
+* `$config['allowCrossOrigin'] = false` - Allow cross origin request
 
 you can defined several sources:
 ```php
@@ -127,11 +128,11 @@ return [
 ### Run tests
 Start PHP server
 ```$xslt
-npm start
+php -S localhost:8181 -t ./
 ```
 Run tests
 ```$xslt
-npm test
+./vendor/bin/codecept run
 ```
 
 ### API
