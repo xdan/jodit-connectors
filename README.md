@@ -4,10 +4,10 @@ Official [Jodit WYSIWYG](http://xdsoft.net/jodit) PHP connector
 [old version](https://github.com/xdan/jodit-connectors/tree/2.5.62) for Jodit 2.x
 ## Install
 ```
-composer require jodit/connector
+composer create-project jodit/connector
 ```
 ## Configuration
-Change `checkPermissions` in `Application.php`
+Change `connector/checkPermissions` in `connector/Application.php`
 
 Like this:
 ```php
