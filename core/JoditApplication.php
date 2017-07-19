@@ -1,11 +1,19 @@
 <?php
 namespace jodit;
-use PHPUnit\Exception;
+
+use \abeautifulsite\SimpleImage;
+use \ErrorException;
 
 /**
  * Class Request
  * @package jodit
  * @property string $action
+ * @property string $source
+ * @property string $name
+ * @property string $newname
+ * @property string $path
+ * @property string $url
+ * @property array $box
  */
 class Request {
     function get($key, $default_value = null) {
@@ -55,6 +63,11 @@ class Response {
 /**
  * Class Source
  * @package jodit
+ * @property string $baseurl
+ * @property number $maxFileSize
+ * @property number $quality
+ * @property string $thumbFolderName
+ * @property string $defaultPermission
  */
 class Source {
     private $data = [];
@@ -67,7 +80,7 @@ class Source {
             return $this->defaultOptuions->{$key};
         }
 
-        throw new \ErrorException('Option ' . $key . ' not set', 501);
+        throw new ErrorException('Option ' . $key . ' not set', 501);
     }
     function __construct($data, $defaultOptuions) {
         $this->data = (object)$data;
@@ -126,7 +139,7 @@ abstract class JoditApplication {
         if (method_exists($this, 'action' . $this->action)) {
             $this->response->data =  (object)call_user_func_array([$this, 'action' . $this->action], []);
         } else {
-            throw new \ErrorException('This action is not found', 404);
+            throw new ErrorException('This action is not found', 404);
         }
 
         $this->response->success = true;
@@ -136,6 +149,9 @@ abstract class JoditApplication {
 
     /**
      * Constructor FileBrowser
+     *
+     * @param {array} $config
+     * @throws ErrorException
      */
     function __construct ($config) {
         ob_start();
@@ -161,8 +177,8 @@ abstract class JoditApplication {
             ini_set('display_errors', 'off');
         }
 
-        if ($this->request->source && empty($this->config->sources[$this->request->source])) {
-            throw new \ErrorException('Need valid parameter source key', 400);
+        if ($this->request->source && $this->request->source !== 'default' && empty($this->config->sources[$this->request->source])) {
+            throw new ErrorException('Need valid parameter source key', 400);
         }
     }
 
@@ -172,7 +188,7 @@ abstract class JoditApplication {
      * @return Source
      */
     public function getSource() {
-        if (!$this->request->source) {
+        if (!$this->request->source || empty($this->config->sources[$this->request->source])) {
             return new Source(array_values($this->config->sources)[0], $this->config);
         }
         return new Source($this->config->sources[$this->request->source], $this->config);
@@ -194,7 +210,20 @@ abstract class JoditApplication {
      */
     private $action;
 
-
+    /**
+     * Check file extension
+     *
+     * @param {string} $file
+     * @param {Source} $source
+     * @return bool
+     */
+    private function isGoodFile($file, $source) {
+        $info = pathinfo($file);
+        if (!isset($info['extension']) or (!in_array(strtolower($info['extension']), $source->extensions))) {
+            return false;
+        }
+        return true;
+    }
     /**
      * Convert number bytes to human format
      *
@@ -205,25 +234,25 @@ abstract class JoditApplication {
     protected function humanFileSize($bytes, $decimals = 2) {
         $size = ['B','kB','MB','GB','TB','PB','EB','ZB','YB'];
         $factor = floor((strlen($bytes) - 1) / 3);
-        return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$size[$factor];
+        return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . $size[(int)$factor];
     }
 
     /**
      * Converts from human readable file size (kb,mb,gb,tb) to bytes
      *
      * @param {string|int} human readable file size. Example 1gb or 11.2mb
-     * @return {int}
+     * @return int
      */
     protected function convertToBytes($from) {
         if (is_numeric($from)) {
-            return $from;
+            return (int)$from;
         }
 
         $number = substr($from, 0, -2);
         $formats = ["KB", "MB", "GB", "TB"];
         $format = strtoupper(substr($from, -2));
 
-        return in_array($format, $formats) ? $number * pow(1024, array_search($format, $formats) + 1) : (int)$from;
+        return in_array($format, $formats) ? (int)($number * pow(1024, array_search($format, $formats) + 1)) : (int)$from;
     }
 
     protected function getImageEditorInfo() {
@@ -248,14 +277,14 @@ abstract class JoditApplication {
         $newName = $this->request->newname ?  $this->makeSafe($this->request->newname) : '';
         
         if (!$path || !$file || !file_exists($path . $file) || !is_file($path . $file)) {
-            throw new \ErrorException('Source file not set or not exists', 404);
+            throw new ErrorException('Source file not set or not exists', 404);
         }
 
-        if (!$newName) {
-            throw new \ErrorException('Set new name for file', 400);
-        }
+//        if (!$newName) {
+//            throw new ErrorException('Set new name for file', 400);
+//        }
 
-        $img = new \abeautifulsite\SimpleImage();
+        $img = new SimpleImage();
 
 
         $img->load($path . $file);
@@ -265,7 +294,7 @@ abstract class JoditApplication {
             $info = pathinfo($path . $file);
             $newName = $newName . '.' . $info['extension'];
             if (file_exists($path . $newName)) {
-                throw new \ErrorException('File ' . $newName . ' already exists', 400);
+                throw new ErrorException('File ' . $newName . ' already exists', 400);
             }
         } else {
             $newName = $file;
@@ -327,6 +356,10 @@ abstract class JoditApplication {
 
         $this->display();
     }
+
+    /**
+     * @param ErrorException $exception
+     */
     public function exceptionHandler ($exception) {
         $this->errorHandler($exception->getCode(), $exception->getMessage(), $exception->getFile(), $exception->getLine());
     }
@@ -336,16 +369,16 @@ abstract class JoditApplication {
      *
      * @param $source
      * @return string
-     * @throws \ErrorException
+     * @throws ErrorException
      */
     protected function getRoot($source) {
         if ($source->root) {
             if (!is_dir($source->root)) {
-                throw new \ErrorException('Root directory not exists ' . $source->root, 501);
+                throw new ErrorException('Root directory not exists ' . $source->root, 501);
             }
             return realpath($source->root) . DIRECTORY_SEPARATOR;
         }
-        throw new \ErrorException('Set root directory for source', 501);
+        throw new ErrorException('Set root directory for source', 501);
     }
 
     /**
@@ -354,7 +387,7 @@ abstract class JoditApplication {
      * @param $source
      * @param string $name
      * @return bool|string
-     * @throws \ErrorException
+     * @throws ErrorException
      */
     protected function getPath ($source, $name = 'path') {
         $root = $this->getRoot($source);
@@ -372,7 +405,7 @@ abstract class JoditApplication {
                 $root .= DIRECTORY_SEPARATOR;
             }
         } else {
-            throw new \ErrorException('Path does not exist', 404);
+            throw new ErrorException('Path does not exist', 404);
         }
  
         return $root;
@@ -383,12 +416,13 @@ abstract class JoditApplication {
      * Check by mimetype what file is image
      *
      * @param string $path
-     * @return {boolean}
+     *
+     * @return bool
      */
     protected function isImage($path) {
         if (!function_exists('exif_imagetype')) {
             function exif_imagetype($filename) {
-                if (( list($width, $height, $type, $attr) = getimagesize($filename)) !== false) {
+                if (( list(, , $type) = getimagesize($filename)) !== false) {
                     return $type;
                 }
                 return false;
@@ -402,11 +436,11 @@ abstract class JoditApplication {
      *
      * @param $url
      * @param $destinationFilename
-     * @throws \ErrorException
+     * @throws ErrorException
      */
     protected function downloadRemoteFile($url, $destinationFilename) {
         if (!ini_get('allow_url_fopen')) {
-            throw new \ErrorException('allow_url_fopen is disable', 501);
+            throw new ErrorException('allow_url_fopen is disable', 501);
         }
         
         if (!function_exists('curl_init')) {
@@ -435,7 +469,7 @@ abstract class JoditApplication {
 
         if (!$this->isImage($destinationFilename)) {
             unlink($destinationFilename);
-            throw new \ErrorException('Bad image ' . $destinationFilename, 406);
+            throw new ErrorException('Bad image ' . $destinationFilename, 406);
         }
     }
 
@@ -445,11 +479,11 @@ abstract class JoditApplication {
     protected function actionFiles() {
         $sources = [];
         foreach ($this->config->sources as $key => $source) {
-            if ($this->request->source && $key !== $this->request->source) {
+            if ($this->request->source && $this->request->source !== 'default' && $key !== $this->request->source && $this->request->path !== './') {
                 continue;
             }
 
-            $source = (object)$source;
+            $source = new Source($source, $this->config);
 
             $path = $this->getPath($source);
 
@@ -463,23 +497,24 @@ abstract class JoditApplication {
 
             while ($file = readdir($dir)) {
                 if ($file != '.' && $file != '..' && is_file($path . $file)) {
-                    $info = pathinfo($path . $file);
-                    if (!isset($info['extension']) or (!isset($source->extensions) or in_array(strtolower($info['extension']), $source->extensions))) {
+                    if ($this->isGoodFile($path . $file, $source)) {
                         $item = [
                             'file' => $file,
                         ];
+
                         if ($this->config->createThumb) {
                             if (!is_dir($path . $this->config->thumbFolderName)) {
                                 mkdir($path . $this->config->thumbFolderName, 0777);
                             }
                             if (!file_exists($path . $this->config->thumbFolderName . DIRECTORY_SEPARATOR . $file)) {
-                                $img = new \abeautifulsite\SimpleImage($path . $file);
+                                $img = new SimpleImage($path . $file);
                                 $img
                                     ->best_fit(150, 150)
                                     ->save($path.$this->config->thumbFolderName . DIRECTORY_SEPARATOR . $file, $this->config->quality);
                             }
                             $item['thumb'] = $this->config->thumbFolderName . DIRECTORY_SEPARATOR . $file;
                         }
+
                         $item['changed'] = date($this->config->datetimeFormat, filemtime($path.$file));
                         $item['size'] = $this->humanFileSize(filesize($path.$file));
                         $sourceData->files[] = $item;
@@ -501,11 +536,11 @@ abstract class JoditApplication {
     protected function actionFolders() {
         $sources = [];
         foreach ($this->config->sources as $key => $source) {
-            if ($this->request->source && $key !== $this->request->source) {
+            if ($this->request->source && $this->request->source !== 'default' && $key !== $this->request->source && $this->request->path !== './') {
                 continue;
             }
 
-            $source = (object)$source;
+            $source = new Source($source, $this->config);
 
             $path = $this->getPath($source);
 
@@ -534,25 +569,25 @@ abstract class JoditApplication {
 
     /**
      * Load remote image by URL to self host
-     * @throws \ErrorException
+     * @throws ErrorException
      */
     protected function actionUploadRemote() {
         $url = $this->request->url;
 
         if (!$url) {
-            throw new \ErrorException('Need url parameter', 400);
+            throw new ErrorException('Need url parameter', 400);
         }
 
         $result = parse_url($url);
 
         if (!isset($result['host']) || !isset($result['path'])) {
-            throw new \ErrorException('Not valid URL', 400);
+            throw new ErrorException('Not valid URL', 400);
         }
         
         $filename = $this->makeSafe(basename($result['path']));
         
         if (!$filename) {
-            throw new \ErrorException('Not valid URL', 400);
+            throw new ErrorException('Not valid URL', 400);
         }
 
         $this->downloadRemoteFile($url, $this->getRoot($this->getSource()) . $filename);
@@ -579,7 +614,7 @@ abstract class JoditApplication {
      * Upload images
      *
      * @return array
-     * @throws \ErrorException
+     * @throws ErrorException
      */
     protected function actionUpload() {
 
@@ -594,38 +629,36 @@ abstract class JoditApplication {
         if (isset($_FILES['files']) and is_array($_FILES['files']) and isset($_FILES['files']['name']) and is_array($_FILES['files']['name']) and count($_FILES['files']['name'])) {
             foreach ($_FILES['files']['name'] as $i => $file) {
                 if ($_FILES['files']['error'][$i]) {
-                    throw new \ErrorException(isset(self::$upload_errors[$_FILES['files']['error'][$i]]) ? self::$upload_errors[$_FILES['files']['error'][$i]] : 'Error', $_FILES['files']['error'][$i]);
+                    throw new ErrorException(isset(self::$upload_errors[$_FILES['files']['error'][$i]]) ? self::$upload_errors[$_FILES['files']['error'][$i]] : 'Error', $_FILES['files']['error'][$i]);
                 }
 
                 $tmp_name = $_FILES['files']['tmp_name'][$i];
 
                 if ($source->maxFileSize and filesize($tmp_name) > $this->convertToBytes($source->maxFileSize)) {
                     unlink($tmp_name);
-                    throw new \ErrorException('File size exceeds the allowable', 403);
+                    throw new ErrorException('File size exceeds the allowable', 403);
                 }
 
                 if (move_uploaded_file($tmp_name, $file = $path . $this->makeSafe($_FILES['files']['name'][$i]))) {
-                    $info = pathinfo($file);
-
-                    if (!isset($info['extension']) or (!in_array(strtolower($info['extension']), $source->extensions))) {
+                    if (!$this->isGoodFile($file, $source)) {
                         unlink($file);
-                        throw new \ErrorException('File type is not in white list', 403);
+                        throw new ErrorException('File type is not in white list', 403);
                     }
 
                     $messages[] = 'File ' . $_FILES['files']['name'][$i] . ' was upload';
                     $files[] = str_replace($root, '', $file);
                 } else {
                     if (!is_writable($path)) {
-                        throw new \ErrorException('Destination directory is not writeble', 424);
+                        throw new ErrorException('Destination directory is not writeble', 424);
                     }
 
-                    throw new \ErrorException('No files have been uploaded', 422);
+                    throw new ErrorException('No files have been uploaded', 422);
                 }
             }
         }
  
         if (!count($files)) {
-            throw new \ErrorException('No files have been uploaded', 422);
+            throw new ErrorException('No files have been uploaded', 422);
         }
 
         return [
@@ -638,7 +671,7 @@ abstract class JoditApplication {
     /**
      * Remove file or directory
      *
-     * @throws \ErrorException
+     * @throws ErrorException
      */
     protected function actionRemove() {
         $source = $this->getSource();
@@ -678,16 +711,16 @@ abstract class JoditApplication {
 
             if (!$result) {
                 $error = (object)error_get_last();
-                throw new \ErrorException('Delete failed! ' . $error->message, 424);
+                throw new ErrorException('Delete failed! ' . $error->message, 424);
             }
         } else {
-            throw new \ErrorException('File or directory not exists' . $path . $target, 400);
+            throw new ErrorException('File or directory not exists' . $path . $target, 400);
         }
     }
 
     /**
      * Create directory
-     * @throws \ErrorException
+     * @throws ErrorException
      */
     protected function actionCreate() {
         $source = $this->getSource();
@@ -701,19 +734,19 @@ abstract class JoditApplication {
                     if (is_dir($destinationPath . $folderName)) {
                         return ['messages' => ['Directory successfully created']];
                     }
-                    throw new \ErrorException('Directory was not created', 404);
+                    throw new ErrorException('Directory was not created', 404);
                 }
-                throw new \ErrorException('Directory already exists', 406);
+                throw new ErrorException('Directory already exists', 406);
             }
-            throw new \ErrorException('The name for new directory has not been set', 406);
+            throw new ErrorException('The name for new directory has not been set', 406);
         }
-        throw new \ErrorException('The destination directory has not been set', 406);
+        throw new ErrorException('The destination directory has not been set', 406);
     }
 
     /**
      * Move file or directory to another folder
      *
-     * @throws \ErrorException
+     * @throws ErrorException
      */
     protected function actionMove() {
         $source = $this->getSource();
@@ -725,31 +758,31 @@ abstract class JoditApplication {
                 if (is_file($source_path) or is_dir($source_path)) {
                     rename($source_path, $destination_path . basename($source_path));
                 } else {
-                    throw new \ErrorException('Not file', 404);
+                    throw new ErrorException('Not file', 404);
                 }
             } else {
-                throw new \ErrorException('Need destination path', 400);
+                throw new ErrorException('Need destination path', 400);
             }
         } else {
-            throw new \ErrorException('Need source path', 400);
+            throw new ErrorException('Need source path', 400);
         }
     }
 
     /**
      * Resize image
      *
-     * @throws \ErrorException
+     * @throws ErrorException
      */
     protected function actionResize() {
         $source = $this->getSource();
         $info = $this->getImageEditorInfo();
 
         if (!$info->box || (int)$info->box->w <= 0) {
-            throw new \ErrorException('Width not specified', 400);
+            throw new ErrorException('Width not specified', 400);
         }
 
         if (!$info->box || (int)$info->box->h <= 0) {
-            throw new \ErrorException('Height not specified', 400);
+            throw new ErrorException('Height not specified', 400);
         }
         
 
@@ -763,19 +796,19 @@ abstract class JoditApplication {
         $info = $this->getImageEditorInfo();
 
         if ((int)$info->box->x < 0 || (int)$info->box->x > (int)$info->width) {
-            throw new \ErrorException('Start X not specified', 400);
+            throw new ErrorException('Start X not specified', 400);
         }
 
         if ((int)$info->box->y < 0 || (int)$info->box->y > (int)$info->height) {
-            throw new \ErrorException('Start Y not specified', 400);
+            throw new ErrorException('Start Y not specified', 400);
         }
 
         if ((int)$info->box->w <= 0) {
-            throw new \ErrorException('Width not specified', 400);
+            throw new ErrorException('Width not specified', 400);
         }
 
         if ((int)$info->box->h <= 0) {
-            throw new \ErrorException('Height not specified', 400);
+            throw new ErrorException('Height not specified', 400);
         }
 
         $info->img
@@ -792,30 +825,46 @@ abstract class JoditApplication {
     function actionGetLocalFileByURL() {
         $url = $this->request->url;
         if (!$url) {
-            throw new \ErrorException('Need full url', 400);
+            throw new ErrorException('Need full url', 400);
         }
 
         $parts = parse_url($url);
 
         if (empty($parts['path'])) {
-            throw new \ErrorException('Empty url', 400);
+            throw new ErrorException('Empty url', 400);
         }
-        
-        $source = $this->getSource();
-        $base = parse_url($source->baseurl);
 
-        $path = preg_replace('#^(/)?' . $base['path'] . '#', '', $parts['path']);
+        $found = false;
+        $path = '';
+        $root = '';
+
+        foreach ($this->config->sources as $key => $source) {
+            if ($this->request->source && $this->request->source !== 'default' && $key !== $this->request->source && $this->request->path !== './') {
+                continue;
+            }
+
+            $source = new Source($source, $this->config);
+            $base = parse_url($source->baseurl);
+
+            $path = preg_replace('#^(/)?' . $base['path'] . '#', '', $parts['path']);
 
 
-        $root = $this->getPath($source);
+            $root = $this->getPath($source);
 
-        if (!file_exists($root . $path) || !is_file($root . $path)) {
-            throw new \ErrorException('File does not exist or is above the root of the connector', 424);
+            if (file_exists($root . $path) && is_file($root . $path) && $this->isGoodFile($root . $path, $source)) {
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            throw new ErrorException('File does not exist or is above the root of the connector', 424);
         }
 
         return [
             'path' => str_replace($root, '', dirname($root . $path) . DIRECTORY_SEPARATOR),
             'name' => basename($path),
+            'source' => $key
         ];
     }
 }

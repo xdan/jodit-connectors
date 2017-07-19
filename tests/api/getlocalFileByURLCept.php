@@ -18,6 +18,7 @@ $I->seeResponseContainsJson([
         "code" => 220,
         "path" => '',
         "name" => 'artio.jpg',
+        "source" => 'test',
     ]
 ]);
 
