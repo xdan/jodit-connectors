@@ -3,6 +3,7 @@ namespace jodit;
 
 use \abeautifulsite\SimpleImage;
 use \ErrorException;
+use function GuzzleHttp\Psr7\parse_query;
 
 /**
  * Class Request
@@ -16,8 +17,22 @@ use \ErrorException;
  * @property array $box
  */
 class Request {
+    private $_raw_data = [];
+    function __construct() {
+        $data = file_get_contents('php://input');
+        if ($data) {
+            $this->_raw_data =  parse_query($data);
+        }
+    }
+
     function get($key, $default_value = null) {
-        return !empty($_REQUEST[$key]) ? $_REQUEST[$key] : $default_value;
+        if (isset($_REQUEST[$key])) {
+            return $_REQUEST[$key];
+        }
+        if (isset($this->_raw_data[$key])) {
+            return $this->_raw_data[$key];
+        }
+        return $default_value;
     }
 
     function __get($key) {
@@ -136,6 +151,8 @@ abstract class JoditApplication {
         exit(json_encode($this->response, JODIT_DEBUG ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES: 0));
     }
     function execute () {
+        $this->action  = $this->request->action;
+
         if (method_exists($this, 'action' . $this->action)) {
             $this->response->data =  (object)call_user_func_array([$this, 'action' . $this->action], []);
         } else {
@@ -166,8 +183,6 @@ abstract class JoditApplication {
 
         $this->response  = new Response();
         $this->request  = new Request();
-
-        $this->action  = $this->request->action;
 
         if (JODIT_DEBUG) {
             error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
