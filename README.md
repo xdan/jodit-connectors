@@ -4,8 +4,10 @@ Official [Jodit WYSIWYG](http://xdsoft.net/jodit) PHP connector
 [old version](https://github.com/xdan/jodit-connectors/tree/2.5.62) for Jodit 2.x
 ## Install
 ```
-composer create-project jodit/connector
+composer create-project --no-dev jodit/connector
 ```
+or download [ZIP archive](https://xdsoft.net/jodit/store/connector.zip)
+
 ## Configuration
 Change `connector/checkPermissions` in `connector/Application.php`
 
@@ -126,12 +128,18 @@ return [
 
 
 ### Run tests
+Install full requires including dev
+
+```bash
+composer create-project jodit/connector
+```
+
 Start PHP server
-```$xslt
+```bash
 php -S localhost:8181 -t ./
 ```
 Run tests
-```$xslt
+```bash
 ./vendor/bin/codecept run
 ```
 
