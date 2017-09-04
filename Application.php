@@ -1,6 +1,7 @@
 <?php
+use Jodit\Application;
 
-class JoditRestApplication extends \jodit\JoditApplication {
+class JoditRestApplication extends Application {
     /**
      * @example Jodit connector in Joomla
      * ```php

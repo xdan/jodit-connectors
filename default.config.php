@@ -18,4 +18,6 @@ return [
     'baseurl' => ($_SERVER['HTTPS'] ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/',
     'root' => __DIR__,
     'extensions' => ['jpg', 'png', 'gif', 'jpeg'],
+
+	'debug' => JODIT_DEBUG,
 ];

@@ -6,7 +6,6 @@ if (!in_array(@$_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1'])) {
 define('JODIT_DEBUG', true);
 
 require_once 'vendor/autoload.php';
-require_once 'core/JoditApplication.php';
 require_once 'tests/TestApplication.php';
 
 $config = include "default.config.php";
