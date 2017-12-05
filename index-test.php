@@ -11,6 +11,7 @@ require_once 'tests/TestApplication.php';
 $config = include "default.config.php";
 
 $config = array_merge($config, include "./tests/config.php");
+
 $fileBrowser = new JoditRestTestApplication($config);
 
 $fileBrowser->checkPermissions();

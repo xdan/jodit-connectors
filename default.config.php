@@ -1,4 +1,8 @@
 <?
+/**
+ * Do not modify the default.config.php file, instead, override the settings in the config.php file
+ */
+
 return [
     'datetimeFormat' => 'm/d/Y g:i A',
     'quality' => 90,
@@ -15,7 +19,7 @@ return [
 
     'allowCrossOrigin' => false,
 
-    'baseurl' => ($_SERVER['HTTPS'] ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/',
+    'baseurl' => ((isset($_SERVER['HTTPS']) and $_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/',
     'root' => __DIR__,
     'extensions' => ['jpg', 'png', 'gif', 'jpeg'],
 

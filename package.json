@@ -1,10 +1,11 @@
 {
   "name": "jodit-connector",
-  "version": "3.0.15",
+  "version": "3.0.16",
   "description": "Official Jodit connector",
   "main": "index.js",
   "scripts": {
-    "github" : "git add --all  && git commit -m \"New version %npm_package_version%. Read more http://xdsoft.net/jodit/doc/index.html#%npm_package_version% \" && git tag %npm_package_version% && git push --tags origin HEAD:master",
+    "newversion": "npm version patch --no-git-tag-version && npm run github",
+    "github": "git add --all  && git commit -m \"New version %npm_package_version%. Read more http://xdsoft.net/jodit/doc/index.html#%npm_package_version% \" && git tag %npm_package_version% && git push --tags origin HEAD:master",
     "test": "./vendor/bin/codecept run",
     "start": "php -S localhost:8181 -t ./"
   },
