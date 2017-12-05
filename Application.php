@@ -18,6 +18,8 @@ class JoditRestApplication extends Application {
         // if (empty($_SESSION['filebrowser'])) {
         //     trigger_error('You do not have permission to view this directory, E_USER_WARNING);
         // }
-        throw new \ErrorException('You need override `checkPermissions` method in file `Application.php`', 501);
+
+	    // read more https://github.com/xdan/jodit-connectors#configuration
+        throw new \ErrorException('You need override `checkPermissions` method in file `Application.php` more https://github.com/xdan/jodit-connectors#configuration', 501);
     }
 }
