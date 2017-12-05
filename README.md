@@ -83,6 +83,7 @@ new Jodit('#editor', {
 <?php
 define('_JEXEC', 1);
 define('JPATH_BASE', realpath(realpath(__DIR__).'/../../../../../')); // replace to valid path
+
 require_once JPATH_BASE . '/includes/defines.php';
 require_once JPATH_BASE . '/includes/framework.php';
 
@@ -91,12 +92,10 @@ JFactory::getApplication('site');
 
 class JoditRestApplication extends \jodit\JoditApplication {
     function checkPermissions() {
-        
         $user = JFactory::getUser();
         if (!$user->id) {
             trigger_error('You are not authorized!', E_USER_WARNING);
         }
-        throw new ErrorException('You need override `checkPermissions` method in file `Application.php`', 501);
     }
 }
 
