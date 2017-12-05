@@ -1,15 +1,21 @@
 <?php
 define('JODIT_DEBUG', false);
 
-require_once 'vendor/autoload.php';
-require_once 'Application.php';
+require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/Application.php';
 
-$config = include "default.config.php";
-$config = array_merge($config, include "config.php");
+$config = require(__DIR__ . "/default.config.php");
 
+if (file_exists(__DIR__ . "/config.php")) {
+	$config = array_merge($config, require(__DIR__ . "/config.php"));
+}
 
 $fileBrowser = new \JoditRestApplication($config);
 
-$fileBrowser->checkPermissions();
+try {
+	$fileBrowser->checkPermissions();
+	$fileBrowser->execute();
+} catch(\ErrorException $e) {
+	$fileBrowser->exceptionHandler($e);
+}
 
-$fileBrowser->execute();
