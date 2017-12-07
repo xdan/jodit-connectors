@@ -32,6 +32,7 @@ Available options:
 * `$config['extensions'] = ['jpg', 'png', 'gif', 'jpeg']` - an array of valid file extensions that are permitted to be loaded (`['jpg', 'png', 'gif', 'jpeg']`)
 * `$config['maxFileSize'] = 8mb` - Maximum file size (0 - is unlimited) default 8Mb
 * `$config['allowCrossOrigin'] = false` - Allow cross origin request
+* `$config['allowReplaceSourceFile'] = true` - Allow replace source image on resized or croped version
 
 you can defined several sources:
 ```php

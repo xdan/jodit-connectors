@@ -18,6 +18,7 @@ return [
     'maxFileSize' => '8mb',
 
     'allowCrossOrigin' => false,
+    'allowReplaceSourceFile' => true,
 
     'baseurl' => ((isset($_SERVER['HTTPS']) and $_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/',
     'root' => __DIR__,

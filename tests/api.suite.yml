@@ -6,3 +6,4 @@ modules:
             depends: PhpBrowser
             part: [json]
         - Helper\Api
+        - Asserts
