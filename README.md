@@ -33,7 +33,7 @@ function checkPermissions () {
         case "remove":
         case "uploadremote":
         case "upload":
-            throw new \ErrorException('You do not have permission to view this directory', 403);
+            throw new \ErrorException('You do not have permission to view this action', 403);
         }
         return true;
     }
