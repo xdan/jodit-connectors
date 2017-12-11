@@ -25,7 +25,7 @@ Or use `$action` for precise division of access
 ```php
 function checkPermissions () {
     /********************************************************************************/
-    if (empty($_SESSION['filebrowser'])) {
+    if (!empty($_SESSION['filebrowser'])) {
         switch ($this->action) {
         case "resize":
         case "move":
@@ -35,7 +35,10 @@ function checkPermissions () {
         case "upload":
             throw new \ErrorException('You do not have permission to view this directory', 403);
         }
+        return true;
     }
+    
+    throw new \ErrorException('You do not have permission to view this directory', 403);
     /********************************************************************************/
 }
 ```
