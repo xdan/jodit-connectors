@@ -21,6 +21,25 @@ function checkPermissions () {
     /********************************************************************************/
 }
 ```
+Or use `$action` for precise division of access
+```php
+function checkPermissions () {
+    /********************************************************************************/
+    if (empty($_SESSION['filebrowser'])) {
+        switch ($this->action) {
+        case "resize":
+        case "move":
+        case "create":
+        case "remove":
+        case "uploadremote":
+        case "upload":
+            throw new \ErrorException('You do not have permission to view this directory', 403);
+        }
+    }
+    /********************************************************************************/
+}
+```
+
 Change `config.php`
 Available options:
 * `$config['quality'] = 90` - image quality
