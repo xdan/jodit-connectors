@@ -20,6 +20,6 @@ class JoditRestApplication extends Application {
         // }
 
 	    // read more https://github.com/xdan/jodit-connectors#configuration
-        throw new \ErrorException('You need override `checkPermissions` method in file `Application.php` more https://github.com/xdan/jodit-connectors#configuration', 501);
+        throw new \ErrorException('You need override `checkAuthentication` method in file `Application.php` more https://github.com/xdan/jodit-connectors#configuration', 501);
     }
 }
