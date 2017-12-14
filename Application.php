@@ -13,7 +13,7 @@ class JoditRestApplication extends Application {
      * }
      * ```
      */
-    function checkPermissions() {
+    function checkAuthentication() {
         // Rewrite this code for your system
         // if (empty($_SESSION['filebrowser'])) {
         //     trigger_error('You do not have permission to view this directory, E_USER_WARNING);

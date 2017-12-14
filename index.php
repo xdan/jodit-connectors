@@ -13,7 +13,7 @@ if (file_exists(__DIR__ . "/config.php")) {
 $fileBrowser = new \JoditRestApplication($config);
 
 try {
-	$fileBrowser->checkPermissions();
+	$fileBrowser->checkAuthentication();
 	$fileBrowser->execute();
 } catch(\ErrorException $e) {
 	$fileBrowser->exceptionHandler($e);
