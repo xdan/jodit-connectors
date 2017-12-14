@@ -1,7 +1,8 @@
-# Jodit FileBrowser Connector for Jodit 3.0
+# Jodit FileBrowser Connector for Jodit v.3.0
 Official [Jodit WYSIWYG](http://xdsoft.net/jodit) PHP connector
 ---
 [old version](https://github.com/xdan/jodit-connectors/tree/2.5.62) for Jodit 2.x
+
 ## Install
 ```
 composer create-project --no-dev jodit/connector
@@ -9,41 +10,6 @@ composer create-project --no-dev jodit/connector
 or download [ZIP archive](https://xdsoft.net/jodit/store/connector.zip)
 
 ## Configuration
-Change `connector/checkPermissions` in `connector/Application.php`
-
-Like this:
-```php
-function checkPermissions () {
-    /********************************************************************************/
-    if (empty($_SESSION['filebrowser'])) {
-        throw new \ErrorException('You do not have permission to view this directory', 403);
-    }
-    /********************************************************************************/
-}
-```
-Or use `$action` for precise division of access
-```php
-function checkPermissions () {
-    /********************************************************************************/
-    if (!empty($_SESSION['filebrowser'])) {
-        switch ($this->action) {
-        case "resize":
-        case "move":
-        case "create":
-        case "remove":
-        case "uploadremote":
-        case "upload":
-            throw new \ErrorException('You do not have permission to view this action', 403);
-        }
-        return true;
-    }
-    
-    throw new \ErrorException('You do not have permission to view this directory', 403);
-    /********************************************************************************/
-}
-```
-
-Change `config.php`
 Available options:
 * `$config['quality'] = 90` - image quality
 * `$config['root'] = __DIR__` - the root directory for user files
@@ -55,8 +21,12 @@ Available options:
 * `$config['maxFileSize'] = 8mb` - Maximum file size (0 - is unlimited) default 8Mb
 * `$config['allowCrossOrigin'] = false` - Allow cross origin request
 * `$config['allowReplaceSourceFile'] = true` - Allow replace source image on resized or croped version
+* `$config['sources']` - Array of options
+* `$config['accessControl']` - Array for checking allow/deny permissions [Read more](#access-control)
+* `$config['defaultRole']="guest"` - Default role for [Access Control](#access-control)
+* `$config['roleSessionVar']="JoditUserRole"` - The session key name that Jodit connector will use for checking the role for current user. [Read more](#access-control)
 
-you can defined several sources:
+you can defined several sources, and override some options:
 ```php
 $config['sources'] = [
     'images' => [
@@ -69,62 +39,32 @@ $config['sources'] = [
 ];
 ```
 
+## How use with [Jodit](https://github.com/xdan/jodit/)
 
-## How use
-Filebrowser settings  [Detailt options](http://xdsoft.net/jodit/doc/Jodit.defaultOptions.html#toc13__anchor)
+Filebrowser settings  [Detailt options](https://xdsoft.net/jodit/doc/#modules-filebrowser-filebrowser)
+
 ```javascript
 new Jodit('#editor', {
     filebrowser: {
         ajax: {
-            url: 'connector/index.php',
-            process: function (resp) {
-               return {
-                    resp.files || [], // {array} The names of files or folders
-                    path: resp.path, // {string} Real relative path
-                    baseurl: resp.baseurl, // {string} Base url for filebrowser
-                    error: resp.error, // {int}
-                    msg: resp.msg // {string}
-                };
-            }
+            url: 'connector/index.php'
         }
     }
 });
 ```
-and uploader options [Default options](http://xdsoft.net/jodit/doc/Jodit.defaultOptions.html#toc27__anchor)
+and uploader options [Default options](https://xdsoft.net/jodit/doc/#modules-uploader)
 ```javascript
 new Jodit('#editor', {
     uploader: {
-        url: 'connector/index.php?action=upload',
+        url: 'connector/index.php?action=fileUpload',
     }
 });
 ```
 
-### Example Integrate with Joomla
 
-#### Change `Application.php`
-```php
-<?php
-define('_JEXEC', 1);
-define('JPATH_BASE', realpath(realpath(__DIR__).'/../../../../../')); // replace to valid path
-
-require_once JPATH_BASE . '/includes/defines.php';
-require_once JPATH_BASE . '/includes/framework.php';
-
-JFactory::getApplication('site');
-
-
-class JoditRestApplication extends \jodit\JoditApplication {
-    function checkPermissions() {
-        $user = JFactory::getUser();
-        if (!$user->id) {
-            trigger_error('You are not authorized!', E_USER_WARNING);
-        }
-    }
-}
-
-```
-
-#### Change `config.php`
+### Customize config 
+Change `config.php`
+> Do not modify the default.config.php file, instead, override the settings in the config.php file
 ```php
 return [
     'sources' => [
@@ -148,24 +88,170 @@ return [
 ];
 ```
 
+## Authentication
 
-### Run tests
-Install full requires including dev
+Change `connector/checkAuthentication` in `connector/Application.php`
 
-```bash
-composer create-project jodit/connector
+Like this:
+```php
+function checkAuthentication () {
+    /********************************************************************************/
+    if (empty($_SESSION['filebrowser'])) {
+        throw new \ErrorException('You do not have permission to view this directory', 403);
+    }
+    /********************************************************************************/
+}
 ```
 
-Start PHP server
-```bash
-php -S localhost:8181 -t ./
+### Example Integrate with Joomla
+
+Change `Application.php`
+```php
+<?php
+define('_JEXEC', 1);
+define('JPATH_BASE', realpath(realpath(__DIR__).'/../../../../../')); // replace to valid path
+
+require_once JPATH_BASE . '/includes/defines.php';
+require_once JPATH_BASE . '/includes/framework.php';
+
+JFactory::getApplication('site');
+
+
+class JoditRestApplication extends \jodit\JoditApplication {
+    function checkAuthentication() {
+        $user = JFactory::getUser();
+        if (!$user->id) {
+            trigger_error('You are not authorized!', E_USER_WARNING);
+        }
+    }
+}
+
 ```
-Run tests
-```bash
-./vendor/bin/codecept run
+
+You can use `$action` for allow or deny access
+```php
+function checkPermissions () {
+    /********************************************************************************/
+    if (!empty($_SESSION['filebrowser'])) {
+        switch ($this->action) {
+        case "imageResize":
+        case "fileMove":
+        case "folderCreate":
+        case "fileRemove":
+        case "fileUploadRemote":
+        case "fileUpload":
+            throw new \ErrorException('You do not have permission to view this action', 403);
+        }
+        return true;
+    }
+    
+    throw new \ErrorException('You do not have permission to view this directory', 403);
+    /********************************************************************************/
+}
 ```
+but better use `AllowControl` option
+
+## Access Control
+`roleSessionVar` - The session key name that Jodit connector will use for checking the role for current user.
+
+```php
+$config['roleSessionVar'] = 'JoditUserRole';
+```
+
+After this you will be able to use `$_SESSION['JoditUserRole']` to set inside your script - user role, after that user was authenticated:
+
+Somewhere in your script
+```php
+session_start();
+//...
+$_SESSION['JoditUserRole'] = 'administrator';
+```
+ 
+In `deafult.config.php` you can find default ACL config
+
+```php
+$config['roleSessionVar'] = 'JoditUserRole';
+
+$config['accessControl'][] = array(
+	'role'                => '*',
+	'extensions'          => '*',
+	'path'                => '/',
+	'FILES'               => true,
+	'FILE_MOVE'           => true,
+	'FILE_UPLOAD'         => true,
+	'FILE_UPLOAD_REMOTE'  => true,
+	'FILE_REMOVE'         => true,
+	'FILE_RENAME'         => true,
+
+	'FOLDERS'             => true,
+	'FOLDER_MOVE'         => true,
+	'FOLDER_REMOVE'       => true,
+	'FOLDER_RENAME'       => true,
+
+	'IMAGE_RESIZE'        => true,
+	'IMAGE_CROP'          => true,
+);
+
+$config['accessControl'][] = array(
+	'role'                => '*',
+   
+	'extensions'          => 'exe,bat,com,sh,swf',
+
+	'FILE_MOVE'           => false,
+	'FILE_UPLOAD'         => false,
+	'FILE_UPLOAD_REMOTE'  => false,
+	'FILE_RENAME'         => false,
+);
+```
+It means that all authenticated user will have all permissions but they are not allowed to download executable files.
+
+In `config.php` you can customize it. For example set read-only permission for all users, but give to users with the role - `administrator` full access:
+```php
+$config['accessControl'][] = Array(
+ 'role'                => '*',
+
+ 'FILES'               => false,
+ 'FILE_MOVE'           => false,
+ 'FILE_UPLOAD'         => false,
+ 'FILE_UPLOAD_REMOTE'  => false,
+ 'FILE_REMOVE'         => false,
+ 'FILE_RENAME'         => false,
+ 
+ 'FOLDERS'             => false,
+ 'FOLDER_MOVE'         => false,
+ 'FOLDER_REMOVE'       => false,
+ 'FOLDER_RENAME'       => false,
+ 
+ 'IMAGE_RESIZE'        => false,
+ 'IMAGE_CROP'          => false,
+);
+
+$config['accessControl'][] = Array(
+ 'role' => 'administrator',
+ 'FILES'               => true,
+ 'FILE_MOVE'           => true,
+ 'FILE_UPLOAD'         => true,
+ 'FILE_UPLOAD_REMOTE'  => true,
+ 'FILE_REMOVE'         => true,
+ 'FILE_RENAME'         => true,
+ 
+ 'FOLDERS'             => true,
+ 'FOLDER_MOVE'         => true,
+ 'FOLDER_REMOVE'       => true,
+ 'FOLDER_RENAME'       => true,
+ 
+ 'IMAGE_RESIZE'        => true,
+ 'IMAGE_CROP'          => true,
+);
+```
+
+
 
 ### API
+
+> All actions case-sensitive
+
+### Actions
 #### files - Get all files from folder
 ```
 GET index.php?action=files&source=:source&path=:path
@@ -250,9 +336,9 @@ Answer JSON example:
 }
 ```
 
-#### uploadremote - Download image from another server
+#### fileUploadRemote - Download image from another server
 ```
-GET index.php?action=uploadremote&source=:source&path=:path&url=:url
+GET index.php?action=fileUploadRemote&source=:source&path=:path&url=:url
 ```
 * [:source=default] - key from config (ex. from Joomla config - `joomla Media)
 * [:path=source.root] - relative path for source.root.
@@ -273,11 +359,11 @@ Answer JSON example:
 }
 ```
 
-#### upload - Upload files to server
+#### fileUpload - Upload files to server
 ```
 POST index.php
 $_POST = [
-    action=upload,
+    action=fileUpload,
     source=:source,
     path=:path,
 ]
@@ -293,9 +379,9 @@ See [`tests/api/uploadImageToServerCept.php`](https://github.com/xdan/jodit-conn
 
 
 
-#### remove - Remove file or folder from server
+#### fileRemove - Remove file
 ```
-GET index.php?action=remove&source=:source&path=:path&name=:name
+GET index.php?action=fileRemove&source=:source&path=:path&name=:name
 ```
 * [:source=default] - key from config (ex. from Joomla config - `joomla Media)
 * [:path=source.root] - relative path for source.root.
@@ -303,10 +389,18 @@ GET index.php?action=remove&source=:source&path=:path&name=:name
 
 See [`tests/api/removeImageFromServerCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/removeImageFromServerCept.php)
 
-
-#### create - Create folder on server
+#### folderRemove - Remove folder from server
 ```
-GET index.php?action=create&source=:source&path=:path&name=:name
+GET index.php?action=folderRemove&source=:source&path=:path&name=:name
+```
+* [:source=default] - key from config (ex. from Joomla config - `joomla Media)
+* [:path=source.root] - relative path for source.root.
+* :name - file name or folder name 
+
+
+#### folderCreate - Create folder on server
+```
+GET index.php?action=folderCreate&source=:source&path=:path&name=:name
 ```
 * [:source=default] - key from config (ex. from Joomla config - `joomla Media)
 * [:path=source.root] - relative path for source.root.
@@ -314,9 +408,9 @@ GET index.php?action=create&source=:source&path=:path&name=:name
 
 See [`tests/api/createFolderCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/createFolderCept.php)
 
-#### move - Move folder or file to another place
+#### folderMove - Move folder to another place
 ```
-GET index.php?action=move&source=:source&path=:path&from=:from
+GET index.php?action=folderMove&source=:source&path=:path&from=:from
 ```
 * [:source=default] - key from config (ex. from Joomla config - `joomla Media)
 * [:path=source.root] - relative path for source.root. This is where the file will be move
@@ -325,9 +419,21 @@ GET index.php?action=move&source=:source&path=:path&from=:from
 See [`tests/api/moveFileCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/moveFileCept.php)
 
 
-#### resize - Resize image
+#### fileMove - Move file to another place
 ```
-GET index.php?action=resize&source=:source&path=:path&name=:name&box[w]=:box_width&box[h]=:box_height
+GET index.php?action=fileMove&source=:source&path=:path&from=:from
+```
+* [:source=default] - key from config (ex. from Joomla config - `joomla Media)
+* [:path=source.root] - relative path for source.root. This is where the file will be move
+* :from - relative path (from source.root) file or folder
+
+See [`tests/api/moveFileCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/moveFileCept.php)
+
+
+
+#### imageResize - Resize image
+```
+GET index.php?action=imageResize&source=:source&path=:path&name=:name&box[w]=:box_width&box[h]=:box_height
 ```
 * [:source=default] - key from config (ex. from Joomla config - `joomla Media)
 * [:path=source.root] - relative path for source.root.
@@ -338,7 +444,7 @@ GET index.php?action=resize&source=:source&path=:path&name=:name&box[w]=:box_wid
 See [`tests/api/resizeImageCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/resizeImageCept.php)
 
 
-#### crop - Crop image
+#### imageCrop - Crop image
 ```
 GET index.php?action=crop&source=:source&path=:path&name=:name&box[w]=:box_width&box[h]=:box_height&box[x]=:box_start_x&box[y]=:box_start_y
 ```
@@ -350,7 +456,7 @@ GET index.php?action=crop&source=:source&path=:path&name=:name&box[w]=:box_width
 
 See [`tests/api/cropImageCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/cropImageCept.php)
 
-#### getlocalfilebyurl - Get local file by URL
+#### getLocalFileByUrl - Get local file by URL
 ```
 GET index.php?action=getlocalfilebyurl&source=:source&path=:path&url=:url
 ```
@@ -361,7 +467,7 @@ GET index.php?action=getlocalfilebyurl&source=:source&path=:path&url=:url
 See [`tests/api/getlocalFileByURLCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/getlocalFileByURLCept.php)
 Example:
 ```
-index.php?action=getlocalfilebyurl&source=test&url=http://localhost:8181/tests/files/artio.jpg
+index.php?action=getLocalFileByUrl&source=test&url=http://localhost:8181/tests/files/artio.jpg
 ```
 
 Answer JSON example:
@@ -385,8 +491,8 @@ Answer JSON example:
 
 ### Contacts
 * [chupurnov@gmail.com](mailto:chupurnov@gmail.com)
-* Website [xdsoft.net](http://xdsoft.net)
-* [Jodit](http://xdsoft.net/jodit)
+* Website [xdsoft.net](https://xdsoft.net)
+* [Jodit](https://xdsoft.net/jodit/)
 
 
 

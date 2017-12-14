@@ -10,9 +10,6 @@
     ],
     "require": {
         "php": ">=5.4.0",
-        "jodit/application": "1.0.*"
-    },
-    "require-dev": {
-        "codeception/codeception": "^2.3"
+        "jodit/application": "2.0.*"
     }
 }

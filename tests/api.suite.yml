@@ -1,9 +1,0 @@
-class_name: ApiTester
-modules:
-    enabled:
-        - REST:
-            url: 'http://localhost:8181/index-test.php'
-            depends: PhpBrowser
-            part: [json]
-        - Helper\Api
-        - Asserts
