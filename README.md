@@ -252,6 +252,41 @@ $config['accessControl'][] = Array(
 > All actions case-sensitive
 
 ### Actions
+#### permissions - get permissions to current path. This action should call after every changing path.
+```
+GET index.php?action=permission&source=:source&path=:path
+```
+* [:source=default] - key from config (ex. from Joomla config - `joomla Media)
+* [:path=source.root] - relative path for source.root
+
+See [`tests/api/PermissionsCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/PermissionsCept.php)
+
+Answer JSON example:
+```JSON
+{
+    "success": true,
+    "time": "2018-03-05 10:14:44",
+    "data": {
+        "permissions": {
+            "allowFiles": true,
+            "allowFileMove": true,
+            "allowFileUpload": true,
+            "allowFileUploadRemote": true,
+            "allowFileRemove": true,
+            "allowFileRename": true,
+            "allowFolders": true,
+            "allowFolderMove": true,
+            "allowFolderCreate": true,
+            "allowFolderRemove": true,
+            "allowFolderRename": true,
+            "allowImageResize": true,
+            "allowImageCrop": true
+        },
+        "code": 220
+    }
+}
+```
+
 #### files - Get all files from folder
 ```
 GET index.php?action=files&source=:source&path=:path
@@ -259,7 +294,7 @@ GET index.php?action=files&source=:source&path=:path
 * [:source=default] - key from config (ex. from Joomla config - `joomla Media)
 * [:path=source.root] - relative path for source.root
 
-See [`tests/api/getAlFilesByAllSourcesCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/getAlFilesByAllSourcesCept.php) and  [`tests/api/getAllFilesByOneSourceCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/getAllFilesByOneSourceCept.php)
+See [`tests/api/getAllFilesByAllSourcesCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/getAllFilesByAllSourcesCept.php) and  [`tests/api/getAllFilesByOneSourceCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/getAllFilesByOneSourceCept.php)
 
 Answer JSON example:
 ```JSON
