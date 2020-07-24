@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Do not modify the default.config.php file, instead, override the settings in the config.php file
  */
