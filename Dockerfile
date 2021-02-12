@@ -1,16 +1,13 @@
 FROM chialab/php:7.2-fpm
 
-ARG USER_ID
-ARG GROUP_ID
-
 ADD docker /usr/local/etc/php/php.ini
 
 WORKDIR /var/www
 
-ADD ./*.php /var/www
-ADD ./*.json /var/www
-ADD ./*.lock /var/www
+COPY ./*.php /var/www/
+COPY ./*.json /var/www/
+COPY ./*.lock /var/www/
 
-RUN composer install
+RUN composer install && composer upgrade
 
 CMD ["php-fpm"]
