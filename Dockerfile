@@ -1,4 +1,4 @@
-FROM chialab/php:7.4-fpm
+FROM chialab/php:7.2-fpm
 
 ADD docker/php.ini /usr/local/etc/php/php.ini
 
