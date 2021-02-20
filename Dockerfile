@@ -1,6 +1,7 @@
 FROM chialab/php:7.2-fpm
 
 #ADD docker/php.ini /usr/local/etc/php/php.ini
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 WORKDIR /var/www
 
