@@ -8,7 +8,7 @@ COPY ./*.php /var/www/
 COPY ./*.json /var/www/
 COPY ./*.lock /var/www/
 
-RUN composer install && composer upgrade
+RUN /usr/local/sbin/composer install && /usr/local/sbin/composer upgrade
 
 CMD ["php-fpm"]
 

@@ -1,6 +1,6 @@
 {
   "name": "jodit-connector",
-  "version": "3.0.53",
+  "version": "3.0.54",
   "description": "Official Jodit connector",
   "main": "index.js",
   "scripts": {
