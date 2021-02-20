@@ -1,4 +1,4 @@
-FROM crunchgeek/php-fpm:7.4
+FROM crunchgeek/php-fpm:7.4-r2
 
 ADD docker/php.ini /usr/local/etc/php/php.ini
 
