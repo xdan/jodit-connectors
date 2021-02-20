@@ -1,4 +1,4 @@
-FROM crunchgeek/php-fpm:7.4-r2
+FROM chialab/php:7.4-fpm
 
 ADD docker/php.ini /usr/local/etc/php/php.ini
 
@@ -8,7 +8,7 @@ COPY ./*.php /var/www/
 COPY ./*.json /var/www/
 COPY ./*.lock /var/www/
 
-RUN /usr/local/sbin/composer install && /usr/local/sbin/composer upgrade
+RUN composer install && composer upgrade
 
 CMD ["php-fpm"]
 
