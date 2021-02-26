@@ -12,11 +12,10 @@ if (file_exists(__DIR__ . "/config.php")) {
 
 $fileBrowser = new \JoditRestApplication($config);
 
-
 try {
     set_time_limit($fileBrowser->config->timeoutLimit);
-    ini_set('upload_max_filesize', $fileBrowser->config->maxFileSize ?: '8mb');
-    ini_set('memory_limit', $fileBrowser->config->memoryLimit ?: '128mb');
+    ini_set('upload_max_filesize', $fileBrowser->config->maxUploadFileSize ?: '8M');
+    ini_set('memory_limit', $fileBrowser->config->memoryLimit ?: '128M');
 
     $fileBrowser->checkAuthentication();
 	$fileBrowser->execute();
