@@ -73,7 +73,6 @@ return [
             'baseurl' => '/images/',
             'createThumb' => true,
             'thumbFolderName' => '_thumbs',
-            'thumbFolderName' => array('.tmb', '.quarantine'),
             'extensions' => array('jpg', 'png', 'gif', 'jpeg'),
         ],
         'joomla Media' => [
@@ -81,7 +80,6 @@ return [
             'baseurl' => '/medias/',
             'createThumb' => false,
             'thumbFolderName' => '_thumbs',
-            'thumbFolderName' => array('.tmb', '.quarantine'),
             'extensions' => array('jpg', 'png', 'gif', 'jpeg'),
         ],
     ]
