@@ -42,4 +42,4 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
-          script: cd /var/www/jodit-pro && docker-compose pull && docker-compose up -d
+          script: cd /var/www/jodit-pro && docker-compose pull connector && docker-compose up -d
