@@ -10,6 +10,6 @@
     ],
     "require": {
         "php": ">=7.2.0",
-        "jodit/application": ">=3.0.3"
+        "jodit/application": ">=3.0.28"
     }
 }
