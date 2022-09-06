@@ -42,4 +42,9 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
-          script: cd /var/www/jodit-pro && docker-compose pull connector && docker-compose up -d
+          script:
+            docker system prune -f &&
+            cd /var/www/xdsoft &&
+            docker-compose pull connector &&
+            docker-compose restart connector &&
+            docker-compose up -d
