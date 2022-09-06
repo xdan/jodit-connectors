@@ -16,6 +16,7 @@ try {
     set_time_limit($fileBrowser->config->timeoutLimit);
     ini_set('upload_max_filesize', $fileBrowser->config->maxUploadFileSize ?: '8M');
     ini_set('memory_limit', $fileBrowser->config->memoryLimit ?: '128M');
+    ini_set('expose_php', 'off');
 
     $fileBrowser->checkAuthentication();
 	$fileBrowser->execute();
