@@ -10,7 +10,13 @@ composer create-project --no-dev jodit/connector
 or download [ZIP archive](https://xdsoft.net/jodit/store/connector.zip)
 
 ## Configuration
+
 Available options:
+
+* `$config['saveSameFileNameStrategy'] = "addNumber"` - Strategy in case the uploaded file has the same name as the file on the server.
+    - "addNumber" - The number "olsen.png" => "olsen(1).png" is added number to the file name, if such a file exists, it will be "olsen(2).png", etc.
+    - "replace" - Just replace the file
+    - "error" - Throw the error - "File already exists"
 * `$config['quality'] = 90` - image quality
 * `$config['root'] = __DIR__` - the root directory for user files
 * `$config['baseurl'] = ($_SERVER['HTTPS'] ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/'` - Root URL for user files (exp. `http://xdsoft.net`)
