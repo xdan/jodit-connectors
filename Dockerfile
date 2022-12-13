@@ -1,10 +1,11 @@
-FROM chialab/php:7.2-fpm
+FROM chialab/php:7.4-fpm
 
 RUN apt-get update -y \
     && apt-get install -y nginx
 
 #ADD docker/php.ini /usr/local/etc/php/php.ini
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+RUN echo "\nexpose_php = Off\n" >> "$PHP_INI_DIR/php.ini"
 
 WORKDIR /var/www
 
