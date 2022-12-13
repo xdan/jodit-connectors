@@ -6,6 +6,7 @@ RUN apt-get update -y \
 #ADD docker/php.ini /usr/local/etc/php/php.ini
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 RUN echo "\nexpose_php = Off\n" >> "$PHP_INI_DIR/php.ini"
+RUN echo "\nupload_max_filesize=10G\npost_max_size=10G\nmemory_limit=512M\n" >> "$PHP_INI_DIR/php.ini"
 
 WORKDIR /var/www
 
