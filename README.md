@@ -23,6 +23,7 @@ Available options:
     - "replace" - Just replace the file
     - "error" - Throw the error - "File already exists"
 * `$config['quality'] = 90` - image quality
+* `$config['datetimeFormat'] = 'd/m/Y'` - Date format
 * `$config['root'] = __DIR__` - the root directory for user files
 * `$config['baseurl'] = ($_SERVER['HTTPS'] ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/'` - Root URL for user
   files (exp. `http://xdsoft.net`)
