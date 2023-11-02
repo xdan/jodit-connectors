@@ -26,7 +26,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags:
+          tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/filebrowser:${{ steps.vars.outputs.tag }}
             ${{ secrets.DOCKERHUB_USERNAME }}/filebrowser:latest
 
