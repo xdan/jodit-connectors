@@ -11,11 +11,6 @@ COPY ./*.php /var/www/
 COPY ./*.json /var/www/
 COPY ./*.lock /var/www/
 
-COPY ./docker/entrypoint.sh /etc/entrypoint.sh
-RUN chmod +x /etc/entrypoint.sh
-
 RUN composer install
 
 RUN chown -R www-data:www-data /var/www
-
-ENTRYPOINT ["/etc/entrypoint.sh"]
