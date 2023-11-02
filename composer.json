@@ -9,7 +9,7 @@
         }
     ],
     "require": {
-        "php": ">=7.2.0",
-        "jodit/application": ">=3.0.28"
+        "php": ">=8",
+        "jodit/application": ">=3.0.41"
     }
 }

@@ -38,9 +38,9 @@ jobs:
       - name: Executing remote ssh commands using password
         uses: appleboy/ssh-action@master
         with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script:
             docker system prune -f &&
