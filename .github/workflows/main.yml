@@ -20,15 +20,23 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/filebrowser
+          tags: |
+            type=ref,event=tag
+
       -
         name: Build and push
         id: docker_build
         uses: docker/build-push-action@v5
         with:
+          context: .
           push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/filebrowser:${{ steps.vars.outputs.tag }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/filebrowser:latest
+          tags: ${{ steps.meta.outputs.tags }}
 
           build-args: |
             USER_ID='php'
