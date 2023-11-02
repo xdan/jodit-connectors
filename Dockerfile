@@ -18,6 +18,4 @@ RUN composer install
 
 RUN chown -R www-data:www-data /var/www
 
-EXPOSE 80 443
-
 ENTRYPOINT ["/etc/entrypoint.sh"]
