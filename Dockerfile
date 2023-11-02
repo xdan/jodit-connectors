@@ -1,4 +1,4 @@
-FROM chialab/php:7.4-fpm
+FROM chialab/php:8.2-fpm
 
 RUN apt-get update -y \
     && apt-get install -y nginx
