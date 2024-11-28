@@ -55,6 +55,6 @@ jobs:
           script:
             docker system prune -f &&
             cd /var/www/xdsoft &&
-            docker-compose pull connector &&
-            docker-compose restart connector &&
-            docker-compose up -d
+            docker compose pull connector &&
+            docker compose restart connector &&
+            docker compose up -d
