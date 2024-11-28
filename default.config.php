@@ -53,7 +53,15 @@ $config = [
     'imageExtensions' => ['jpg', 'png', 'gif', 'jpeg'],
 
 	'debug' => JODIT_DEBUG,
-	'accessControl' => []
+	'accessControl' => [],
+	"pdf" => [
+        "defaultFont" => "serif",
+        "isRemoteEnabled" => true,
+        "paper" => [
+            'format' => 'A4',
+            'page_orientation' => 'portrait',
+        ]
+    ]
 ];
 
 
