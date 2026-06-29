@@ -1,0 +1,48 @@
+name: New version
+
+# Triggered by a new release of the jodit/application library (it sends a
+# `newversion` repository_dispatch). Pull the new library, bump the version and
+# push a tag. The tag is pushed with a PAT (not GITHUB_TOKEN) so that it
+# triggers the existing build-and-deploy workflow (main.yml, on: push tags),
+# which rebuilds chupurnov/filebrowser and redeploys it to the server.
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [newversion]
+
+jobs:
+  newversion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+
+      - name: Update jodit/application and bump version
+        run: |
+          composer update jodit/application --no-interaction --no-progress
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          npm version patch --no-git-tag-version
+          VERSION=$(node -p "require('./package.json').version")
+          git add -A
+          git commit -m "New version $VERSION (jodit/application update)"
+          git tag "$VERSION"
+
+      - name: Push version + tag (PAT so the tag triggers main.yml)
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.PAT_TOKEN }}
+          branch: master
+          tags: true
