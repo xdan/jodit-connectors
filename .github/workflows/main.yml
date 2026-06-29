@@ -26,8 +26,12 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/filebrowser
+          # Also push :latest — the server's docker-compose references
+          # chupurnov/filebrowser (i.e. :latest), so `docker compose pull
+          # connector` on deploy needs :latest to move.
           tags: |
             type=ref,event=tag
+            type=raw,value=latest
 
       -
         name: Build and push
