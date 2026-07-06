@@ -515,6 +515,34 @@ GET index.php?action=fileMove&source=:source&path=:path&from=:from
 
 See [`tests/api/moveFileCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/moveFileCept.php)
 
+#### fileCopy - Copy file to another place
+
+```
+GET index.php?action=fileCopy&source=:source&path=:path&from=:from
+```
+
+* [:source=default] - key from config (ex. from Joomla config - `joomla Media)
+* [:path=source.root] - relative path for source.root. This is where the file will be copied
+* :from - relative path (from source.root) to the file
+
+Unlike `fileMove`, a name clash is not an error — the copy gets a ` (N)` suffix, so copying into the same folder duplicates the file.
+
+See [`tests/api/copyFileCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/copyFileCept.php)
+
+#### folderCopy - Copy folder to another place
+
+```
+GET index.php?action=folderCopy&source=:source&path=:path&from=:from
+```
+
+* [:source=default] - key from config (ex. from Joomla config - `joomla Media)
+* [:path=source.root] - relative path for source.root. This is where the folder will be copied recursively
+* :from - relative path (from source.root) to the folder
+
+Copying a folder into itself or its own subtree is rejected. A name clash gets a ` (N)` suffix.
+
+See [`tests/api/copyFolderCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/copyFolderCept.php)
+
 #### imageResize - Resize image
 
 ```
