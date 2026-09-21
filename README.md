@@ -338,8 +338,9 @@ Answer JSON example:
     "success": true,
     "time": "2017-07-10 17:10:26",
     "data": {
-        "sources": {
-            "test": {
+        "sources": [
+            {
+                "name": "test",
                 "baseurl": "http://localhost:8181/tests/files/",
                 "path": "",
                 "files": [
@@ -351,7 +352,8 @@ Answer JSON example:
                     }
                 ]
             },
-            "folder1": {
+            {
+                "name": "folder1",
                 "baseurl": "http://localhost:8181/tests/files/folder1/",
                 "path": "",
                 "files": [
@@ -363,11 +365,13 @@ Answer JSON example:
                     }
                 ]
             }
-        },
+        ],
         "code": 220
     }
 }
 ```
+
+> `data.sources` is always an **array** of source objects (each with its `name`), not an object keyed by source name — the Jodit client iterates it with `forEach`. `files` / `folders` must be present (possibly empty) arrays.
 
 #### folders - Get all folders from path
 
@@ -388,8 +392,9 @@ Answer JSON example:
     "success": true,
     "time": "2017-07-10 17:11:10",
     "data": {
-        "sources": {
-            "test": {
+        "sources": [
+            {
+                "name": "test",
                 "baseurl": "http://localhost:8181/tests/files/",
                 "path": "",
                 "folders": [
@@ -397,7 +402,8 @@ Answer JSON example:
                     "folder1"
                 ]
             },
-            "folder1": {
+            {
+                "name": "folder1",
                 "baseurl": "http://localhost:8181/tests/files/folder1/",
                 "path": "",
                 "folders": [
@@ -405,7 +411,7 @@ Answer JSON example:
                     "folder2"
                 ]
             }
-        },
+        ],
         "code": 220
     }
 }
