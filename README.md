@@ -21,7 +21,9 @@ Available options:
     - "addNumber" - The number "olsen.png" => "olsen(1).png" is added number to the file name, if such a file exists, it
       will be "olsen(2).png", etc.
     - "replace" - Just replace the file
-    - "error" - Throw the error - "File already exists"
+    - "error" - Reject the upload with code `409` and the message "File already exists"
+  
+  The client can override it for one upload with the `onExists` parameter of `fileUpload` (see below).
 * `$config['quality'] = 90` - image quality
 * `$config['datetimeFormat'] = 'd/m/Y'` - Date format
 * `$config['root'] = __DIR__` - the root directory for user files
@@ -451,6 +453,7 @@ $_POST = [
     action=fileUpload,
     source=:source,
     path=:path,
+    onExists=:onExists,
 ]
 $_FILES = [
     files=[...]
@@ -460,6 +463,10 @@ $_FILES = [
 * [:source=default] - key from config (ex. from Joomla config - `joomla Media)
 * [:path=source.root] - relative path for source.root.
 * :files - files
+* [:onExists] - what to do when a file with the same name is already there: `addNumber`, `replace` or `error`.
+  Overrides `saveSameFileNameStrategy` for this upload. `replace` also needs the `FILE_REMOVE` permission on the path.
+  Without it the config strategy applies; with `error` the answer is `{"success": false, "data": {"code": 409, "messages": ["File already exists"]}}`,
+  so a client can ask the user and upload again with `onExists`.
 
 See [`tests/api/uploadImageToServerCept.php`](https://github.com/xdan/jodit-connectors/blob/master/tests/api/uploadImageToServerCept.php)
 
